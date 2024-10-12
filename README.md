@@ -8,7 +8,7 @@ Written in Python, it primarily makes use of these two libraries: [TwitchIO](htt
 
 ### How to use
 
-1. Edit config.py (get your bot's info from [Twitch Token Generator](https://twitchtokengenerator.com)
+1. Edit config.py (get your bot's info from [Twitch Token Generator](https://twitchtokengenerator.com))
 2. Build the image with Podman: `$ podman build -t stt -f Containerfile`
 3. Run the container: `$ podman run --rm -it stt` or `$ podman run --rm -d stt` to leave it in background
 
