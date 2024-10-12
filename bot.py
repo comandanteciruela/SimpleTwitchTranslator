@@ -4,7 +4,7 @@ from async_google_trans_new import AsyncTranslator
 from config import (
     OAUTH_TOKEN,
     BOT_CLIENT_ID,
-    PRIMARY_CHANNEL_NAME,
+    CHANNELS,
     IGNORE_LANG,
     OWNER_TO_PEOPLE,
     BOT_NAME,
@@ -19,7 +19,7 @@ class Bot(commands.Bot):
 
     def __init__(self):
         super().__init__(
-            token=OAUTH_TOKEN, prefix="!", initial_channels=[PRIMARY_CHANNEL_NAME]
+            token=OAUTH_TOKEN, prefix="!", initial_channels=[CHANNELS]
         )
         self.translator = AsyncTranslator()
         self.websocket_ready = False
@@ -38,9 +38,9 @@ class Bot(commands.Bot):
         self.websocket_ready = True
         self.bot_id = bot_data["id"]
         self.bot_display_name = bot_data["display_name"]
-        self.bot_primary_channel = self.get_channel(PRIMARY_CHANNEL_NAME)
+        self.bot_channels = self.get_channel(CHANNELS)
         print(f"{DEBUG_PREFIX}Bot data connection info: {bot_data}")
-        print(f"{DEBUG_PREFIX}{self.bot_primary_channel}")
+        print(f"{DEBUG_PREFIX}{self.bot_channels}")
         print(f"{DEBUG_PREFIX}Account name: {self.bot_display_name}")
         print(f"{DEBUG_PREFIX}Bot ID: {self.bot_id}")
 
@@ -106,8 +106,8 @@ class Bot(commands.Bot):
                     lang_code.lower == IGNORE_LANG.lower()
                     and message.author.display_name.lower()
                     != (
-                        self.bot_primary_channel
-                        == self.get_channel(PRIMARY_CHANNEL_NAME)
+                        self.bot_channels
+                        == self.get_channel(CHANNELS)
                     )
                 ):
                     print(f"{DEBUG_PREFIX}The message was ignored due to language.")
@@ -124,7 +124,7 @@ class Bot(commands.Bot):
 
                 if translated_text:
                     formatted_message = f"{translated_text} [by {message.author.display_name}] ({lang_code} > {target_lang})"
-                    await self.bot_primary_channel.send(f"/me {formatted_message}")
+                    await self.bot_channels.send(f"/me {formatted_message}")
                     print(f"{DEBUG_PREFIX}Message sent: {formatted_message}")
                     await sleep(1)
 
