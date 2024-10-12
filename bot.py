@@ -8,6 +8,7 @@ from config import (
     IGNORE_LANG,
     OWNER_TO_PEOPLE,
     BOT_NAME,
+    IGNORE_USERS,
 )
 from aiohttp import ClientSession
 
