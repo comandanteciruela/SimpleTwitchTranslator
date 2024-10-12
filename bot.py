@@ -91,7 +91,7 @@ class Bot(commands.Bot):
         )
 
         if message.author.display_name.lower() in [user.lower() for user in IGNORE_USERS]:
-            print(f"{DEBUG_PREFIX}User is ignored, won't translate: {message.author.display_name}")
+            print(f"{DEBUG_PREFIX}User is ignored, won't translate.")
             return
 
         await self.handle_commands(message)
