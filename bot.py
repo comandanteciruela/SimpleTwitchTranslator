@@ -7,7 +7,6 @@ from config import (
     CHANNEL_NAME,
     IGNORE_LANG,
     OWNER_TO_PEOPLE,
-    DEBUG,
     BOT_NAME,
 )
 from aiohttp import ClientSession
