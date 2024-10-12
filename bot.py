@@ -4,7 +4,7 @@ from async_google_trans_new import AsyncTranslator
 from config import (
     OAUTH_TOKEN,
     BOT_CLIENT_ID,
-    CHANNEL_NAME,
+    PRIMARY_CHANNEL_NAME,
     IGNORE_LANG,
     OWNER_TO_PEOPLE,
     BOT_NAME,
@@ -18,31 +18,34 @@ DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
 class Bot(commands.Bot):
 
     def __init__(self):
-        super().__init__(token=OAUTH_TOKEN, prefix="!", initial_channels=[CHANNEL_NAME])
+        super().__init__(
+            token=OAUTH_TOKEN, prefix="!", initial_channels=[PRIMARY_CHANNEL_NAME]
+        )
         self.translator = AsyncTranslator()
         self.websocket_ready = False
         self.bot_id = None
-        self.bot_display_name = None
+        self.bot_login = None
 
     async def event_ready(self):
-        print(
-            f'{DEBUG_PREFIX}Trying to connect to channel "{CHANNEL_NAME}" with bot "{BOT_NAME}"!'
-        )
 
-        while not await self.check_connection():
+        while True:
+            is_connected, bot_data = await self.check_connection()
+            if is_connected:
+                break
             print(f"{DEBUG_PREFIX}Retrying connection...")
             await sleep(1)
+
         self.websocket_ready = True
-        user_data = await self.get_bot_info()
-        self.bot_id = user_data["id"]
-        self.bot_display_name = user_data["display_name"]
-        print(f"{DEBUG_PREFIX}User Data: {user_data}")
-        print(f'{DEBUG_PREFIX}Connected channel: {user_data["login"]}')
+        self.bot_id = bot_data["id"]
+        self.bot_display_name = bot_data["display_name"]
+        self.bot_primary_channel = self.get_channel(PRIMARY_CHANNEL_NAME)
+        print(f"{DEBUG_PREFIX}Bot data connection info: {bot_data}")
+        print(f"{DEBUG_PREFIX}{self.bot_primary_channel}")
         print(f"{DEBUG_PREFIX}Account name: {self.bot_display_name}")
         print(f"{DEBUG_PREFIX}Bot ID: {self.bot_id}")
 
     async def check_connection(self):
-        print(f"{DEBUG_PREFIX}Performing connection check...")
+        print(f"{DEBUG_PREFIX}Trying to connect...")
         try:
             async with ClientSession() as session:
                 async with session.get(
@@ -53,46 +56,37 @@ class Bot(commands.Bot):
                     },
                 ) as response:
                     if response.status == 200:
-                        print(f"{DEBUG_PREFIX}Ping to server successful.")
-                        return True
+                        print(f"{DEBUG_PREFIX}Successful connection.")
+                        data = await response.json()
+                        if data.get("data"):
+                            return True, data["data"][0]
+                        else:
+                            print(f"{DEBUG_PREFIX}No user data found.")
+                            return False, None
                     else:
-                        print(f"{DEBUG_PREFIX}Ping error: {response.status}")
-                        return False
+                        print(f"{DEBUG_PREFIX}Connection error: {response.status}")
+                        return False, None
         except Exception as e:
-            print(f"{DEBUG_PREFIX}Error sending ping: {e}")
-            return False
-
-    async def get_bot_info(self):
-        async with ClientSession() as session:
-            async with session.get(
-                "https://api.twitch.tv/helix/users",
-                headers={
-                    "Authorization": f"Bearer {OAUTH_TOKEN}",
-                    "Client-Id": BOT_CLIENT_ID,
-                },
-            ) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    if data.get("data"):
-                        return data["data"][0]
-        return None
+            print(f"{DEBUG_PREFIX}Connection error: {e}")
+            return False, None
 
     async def event_message(self, message):
 
         if not self.websocket_ready:
             return
 
-        if message.author is None or (self.bot_id and message.author.id == self.bot_id):
+        if message.author is None or message.author.id == self.bot_id:
             return
 
-        print("\n")
-        print(
-            f"{DEBUG_PREFIX}Message received: {message.content} from {message.author.display_name}"
-        )
-
-        if message.author.display_name.lower() in [user.lower() for user in IGNORE_USERS]:
+        if message.author.display_name.lower() in [
+            user.lower() for user in IGNORE_USERS
+        ]:
             print(f"{DEBUG_PREFIX}User is ignored, won't translate.")
             return
+
+        print(
+            f"\n{DEBUG_PREFIX}Message received: {message.content} from {message.author.display_name}"
+        )
 
         await self.handle_commands(message)
 
@@ -102,17 +96,19 @@ class Bot(commands.Bot):
         await self.handle_translation(message)
 
     async def handle_translation(self, message):
+
         try:
-            print(f"{DEBUG_PREFIX}Checking if the language should be ignored...")
             detected_lang = await self.translator.detect(message.content)
 
-            if isinstance(detected_lang, list) and len(detected_lang) >= 2:
+            if isinstance(detected_lang, list) and len(detected_lang) == 2:
                 lang_code = detected_lang[0].lower()
-                print(f"{DEBUG_PREFIX}Detected language: {lang_code}")
-
                 if (
-                    lang_code == IGNORE_LANG
-                    and message.author.display_name.lower() != CHANNEL_NAME.lower()
+                    lang_code.lower == IGNORE_LANG.lower()
+                    and message.author.display_name.lower()
+                    != (
+                        self.bot_primary_channel
+                        == self.get_channel(PRIMARY_CHANNEL_NAME)
+                    )
                 ):
                     print(f"{DEBUG_PREFIX}The message was ignored due to language.")
                     return
@@ -127,17 +123,11 @@ class Bot(commands.Bot):
                     translated_text = translated_text[0]
 
                 if translated_text:
-                    print(
-                        f"{DEBUG_PREFIX}Translating message: {translated_text} (from {lang_code})"
-                    )
-                    channel = self.get_channel(CHANNEL_NAME)
-                    if channel:
-                        formatted_message = f"/me {translated_text} [by {message.author.display_name}] ({lang_code} > {target_lang})"
-                        await channel.send(formatted_message)
-                        print(f"{DEBUG_PREFIX}Message sent: {formatted_message}")
-                        await sleep(1)
-                    else:
-                        print(f"{DEBUG_PREFIX}Error: Channel {CHANNEL_NAME} not found.")
+                    formatted_message = f"{translated_text} [by {message.author.display_name}] ({lang_code} > {target_lang})"
+                    await self.bot_primary_channel.send(f"/me {formatted_message}")
+                    print(f"{DEBUG_PREFIX}Message sent: {formatted_message}")
+                    await sleep(1)
+
                 else:
                     print(f"{DEBUG_PREFIX}Could not translate the message.")
             else:
