@@ -12,6 +12,7 @@ from config import (
     IGNORE_USERS,
     MESSAGES,
     MESSAGE_INTERVAL,
+    WELCOME_MESSAGE,
 )
 from aiohttp import ClientSession
 
@@ -46,16 +47,19 @@ class Bot(commands.Bot):
         print(f"{DEBUG_PREFIX}{self.bot_connected_channel}")
         print(f"{DEBUG_PREFIX}Account name: {self.bot_display_name}")
         print(f"{DEBUG_PREFIX}Bot ID: {self.bot_id}")
+
+        await self.bot_connected_channel.send(WELCOME_MESSAGE)
+
         create_task(self.send_random_messages())
 
 
     async def send_random_messages(self):
         while True:
+            await sleep(MESSAGE_INTERVAL)
             if self.websocket_ready:
                 message = choice(MESSAGES)
                 await self.bot_connected_channel.send(message)
-                print(f"{DEBUG_PREFIX}Sent random message: {message}")
-            await sleep(MESSAGE_INTERVAL)  # Espera 60 segundos antes de enviar el siguiente mensaje
+                print(f"\n{DEBUG_PREFIX}Sent random message: {message}")
 
     async def check_connection(self):
         print(f"{DEBUG_PREFIX}Trying to connect...")
