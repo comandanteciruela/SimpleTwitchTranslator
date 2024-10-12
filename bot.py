@@ -90,6 +90,10 @@ class Bot(commands.Bot):
             f"{DEBUG_PREFIX}Message received: {message.content} from {message.author.display_name}"
         )
 
+        if message.author.display_name.lower() in [user.lower() for user in IGNORE_USERS]:
+            print(f"{DEBUG_PREFIX}User is ignored, won't translate: {message.author.display_name}")
+            return
+
         await self.handle_commands(message)
 
         if message.content.startswith("!"):
