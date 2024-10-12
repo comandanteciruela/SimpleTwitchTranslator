@@ -132,10 +132,10 @@ class Bot(commands.Bot):
                     )
                     channel = self.get_channel(CHANNEL_NAME)
                     if channel:
-                        await sleep(1)
                         formatted_message = f"/me {translated_text} [by {message.author.display_name}] ({lang_code} > {target_lang})"
                         await channel.send(formatted_message)
                         print(f"{DEBUG_PREFIX}Message sent: {formatted_message}")
+                        await sleep(1)
                     else:
                         print(f"{DEBUG_PREFIX}Error: Channel {CHANNEL_NAME} not found.")
                 else:
