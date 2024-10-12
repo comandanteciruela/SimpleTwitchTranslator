@@ -1,10 +1,7 @@
 OAUTH_TOKEN = "get_this_in_twitchtokengenerator_dot_com_connect_your_bot"
 BOT_NAME = "your_bot_account_nickname"
 BOT_CLIENT_ID = "get_this_in_twitchtokengenerator_dot_com_connect_your_bot"
-CHANNELS = [
-    "myfriendlychannel",
-    "yourotherfriendlychannel",
-]
+CHANNEL = "yourfriendlychannel"
 
 IGNORE_LANG = "es"
 OWNER_TO_PEOPLE = "en"
