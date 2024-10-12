@@ -1,6 +1,7 @@
-from asyncio import run, sleep
+from asyncio import run, sleep, create_task
 from twitchio.ext import commands
 from async_google_trans_new import AsyncTranslator
+from random import choice
 from config import (
     OAUTH_TOKEN,
     BOT_CLIENT_ID,
@@ -9,6 +10,8 @@ from config import (
     OWNER_TO_PEOPLE,
     BOT_NAME,
     IGNORE_USERS,
+    MESSAGES,
+    MESSAGE_INTERVAL,
 )
 from aiohttp import ClientSession
 
@@ -43,6 +46,16 @@ class Bot(commands.Bot):
         print(f"{DEBUG_PREFIX}{self.bot_connected_channel}")
         print(f"{DEBUG_PREFIX}Account name: {self.bot_display_name}")
         print(f"{DEBUG_PREFIX}Bot ID: {self.bot_id}")
+        create_task(self.send_random_messages())
+
+
+    async def send_random_messages(self):
+        while True:
+            if self.websocket_ready:
+                message = choice(MESSAGES)
+                await self.bot_connected_channel.send(message)
+                print(f"{DEBUG_PREFIX}Sent random message: {message}")
+            await sleep(MESSAGE_INTERVAL)  # Espera 60 segundos antes de enviar el siguiente mensaje
 
     async def check_connection(self):
         print(f"{DEBUG_PREFIX}Trying to connect...")
@@ -103,7 +116,7 @@ class Bot(commands.Bot):
             if isinstance(detected_lang, list) and len(detected_lang) == 2:
                 lang_code = detected_lang[0].lower()
                 if (
-                    lang_code.lower == IGNORE_LANG.lower()
+                    lang_code.lower() == IGNORE_LANG.lower()
                     and message.author.display_name.lower()
                     != (
                         self.bot_connected_channel
