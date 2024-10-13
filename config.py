@@ -5,6 +5,11 @@ CHANNEL = "yourfriendlychannel"
 
 # OPTIONAL CONFIG
 IGNORE_LANG = "es"
+IGNORE_TEXT = [
+    "I'm eating water.",
+    "Fek yoh!",
+    "AAAAHHHH!!!!",
+]
 OWNER_TO_PEOPLE = "en"
 WELCOME_MESSAGE = "I am now here! SMOrc"
 RANDOM_MESSAGES = [
