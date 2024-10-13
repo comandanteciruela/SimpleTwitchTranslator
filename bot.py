@@ -3,7 +3,7 @@ from twitchio.ext import commands
 from async_google_trans_new import AsyncTranslator
 from random import choice
 from config import (
-    OAUTH_TOKEN,
+    BOT_OAUTH_TOKEN,
     BOT_CLIENT_ID,
     CHANNEL,
     IGNORE_LANG,
@@ -22,7 +22,7 @@ class Bot(commands.Bot):
 
     def __init__(self):
         super().__init__(
-            token=OAUTH_TOKEN, prefix="!", initial_channels=[CHANNEL]
+            token=BOT_OAUTH_TOKEN, prefix="!", initial_channels=[CHANNEL]
         )
         self.translator = AsyncTranslator()
         self.websocket_ready = False
@@ -68,7 +68,7 @@ class Bot(commands.Bot):
                 async with session.get(
                     "https://api.twitch.tv/helix/users",
                     headers={
-                        "Authorization": f"Bearer {OAUTH_TOKEN}",
+                        "Authorization": f"Bearer {BOT_OAUTH_TOKEN}",
                         "Client-Id": BOT_CLIENT_ID,
                     },
                 ) as response:
