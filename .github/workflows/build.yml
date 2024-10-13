@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
 
     steps:
@@ -29,8 +29,37 @@ jobs:
         mkdir output
         move dist\bot.exe output\bot.exe
 
-    - name: Upload Executable
-      uses: actions/upload-artifact@v3
+    - name: Upload Windows Executable
+      uses: actions/upload-artifact@v4
       with:
-        name: bot-executable
+        name: bot-executable-windows
         path: output/bot.exe
+
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build Executable
+      run: |
+        pyinstaller --onefile bot.py
+        mkdir output
+        mv dist/bot output/bot
+
+    - name: Upload Linux Executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: bot-executable-linux
+        path: output/bot
