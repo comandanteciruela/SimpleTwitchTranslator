@@ -83,7 +83,7 @@ class Bot(commands.Bot):
         if isinstance(BOT_INTRO_MESSAGES, list) and BOT_INTRO_MESSAGES:
             intro_message = choice(BOT_INTRO_MESSAGES)
             await self.bot_connected_channel.send(intro_message)
-            await sleep(1)  # Espera después de enviar el mensaje
+            await sleep(1)
 
         create_task(self.send_random_messages())
 
@@ -99,6 +99,7 @@ class Bot(commands.Bot):
             if self.websocket_ready and RANDOM_MESSAGES and any(isinstance(msg, str) for msg in RANDOM_MESSAGES):
                 message = choice(RANDOM_MESSAGES)
                 await self.bot_connected_channel.send(message)
+                await sleep(1)
                 print(f"\n{DEBUG_PREFIX}Sent random message: {message}")
 
     async def check_connection(self):
