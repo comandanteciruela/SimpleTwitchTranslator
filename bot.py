@@ -6,17 +6,44 @@ from config import (
     BOT_OAUTH_TOKEN,
     BOT_CLIENT_ID,
     CHANNEL,
-    IGNORE_LANG,
-    OWNER_TO_PEOPLE,
-    IGNORE_USERS,
-    MESSAGES,
-    MESSAGE_INTERVAL,
-    WELCOME_MESSAGE,
 )
 from aiohttp import ClientSession
 
-DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
+DEFAULT_MESSAGE_INTERVAL = 2400
+DEFAULT_IGNORE_LANG = None
+DEFAULT_OWNER_TO_PEOPLE = "en"
 
+try:
+    from config import WELCOME_MESSAGE
+except ImportError:
+    WELCOME_MESSAGE = None
+
+try:
+    from config import MESSAGES
+except ImportError:
+    MESSAGES = []
+
+try:
+    from config import IGNORE_USERS
+except ImportError:
+    IGNORE_USERS = []
+
+try:
+    from config import MESSAGE_INTERVAL
+except ImportError:
+    MESSAGE_INTERVAL = DEFAULT_MESSAGE_INTERVAL
+
+try:
+    from config import IGNORE_LANG
+except ImportError:
+    IGNORE_LANG = DEFAULT_IGNORE_LANG
+
+try:
+    from config import OWNER_TO_PEOPLE
+except ImportError:
+    OWNER_TO_PEOPLE = DEFAULT_OWNER_TO_PEOPLE
+
+DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
 
 class Bot(commands.Bot):
 
@@ -30,7 +57,6 @@ class Bot(commands.Bot):
         self.bot_login = None
 
     async def event_ready(self):
-
         while True:
             is_connected, bot_data = await self.check_connection()
             if is_connected:
@@ -47,16 +73,21 @@ class Bot(commands.Bot):
         print(f"{DEBUG_PREFIX}Account name: {self.bot_display_name}")
         print(f"{DEBUG_PREFIX}Bot ID: {self.bot_id}")
 
-        if WELCOME_MESSAGE:
+        if WELCOME_MESSAGE and isinstance(WELCOME_MESSAGE, str) and WELCOME_MESSAGE.strip():
             await self.bot_connected_channel.send(WELCOME_MESSAGE)
 
         create_task(self.send_random_messages())
 
-
     async def send_random_messages(self):
+        interval = MESSAGE_INTERVAL
+
+        if not (isinstance(interval, (int, float)) and interval > 0):
+            print(f"{DEBUG_PREFIX}Invalid MESSAGE_INTERVAL; defaulting to {DEFAULT_MESSAGE_INTERVAL} seconds.")
+            interval = DEFAULT_MESSAGE_INTERVAL
+
         while True:
-            await sleep(MESSAGE_INTERVAL)
-            if self.websocket_ready and MESSAGES:
+            await sleep(interval)
+            if self.websocket_ready and MESSAGES and any(isinstance(msg, str) for msg in MESSAGES):
                 message = choice(MESSAGES)
                 await self.bot_connected_channel.send(message)
                 print(f"\n{DEBUG_PREFIX}Sent random message: {message}")
@@ -88,22 +119,18 @@ class Bot(commands.Bot):
             return False, None
 
     async def event_message(self, message):
-
         if not self.websocket_ready:
             return
 
         if message.author is None or message.author.id == self.bot_id:
             return
 
-        if message.author.display_name.lower() in [
-            user.lower() for user in IGNORE_USERS
-        ]:
-            print(f"{DEBUG_PREFIX}User is ignored, won't translate.")
-            return
+        if isinstance(IGNORE_USERS, list) and any(isinstance(user, str) for user in IGNORE_USERS):
+            if message.author.display_name.lower() in [user.lower() for user in IGNORE_USERS]:
+                print(f"{DEBUG_PREFIX}User is ignored, won't translate.")
+                return
 
-        print(
-            f"\n{DEBUG_PREFIX}Message received: {message.content} from {message.author.display_name}"
-        )
+        print(f"\n{DEBUG_PREFIX}Message received: {message.content} from {message.author.display_name}")
 
         await self.handle_commands(message)
 
@@ -113,7 +140,6 @@ class Bot(commands.Bot):
         await self.handle_translation(message)
 
     async def handle_translation(self, message):
-
         try:
             detected_lang = await self.translator.detect(message.content)
 
@@ -121,7 +147,7 @@ class Bot(commands.Bot):
                 lang_code = detected_lang[0].lower()
                 is_owner = message.author.display_name.lower() == CHANNEL.lower()
 
-                if lang_code.lower() == IGNORE_LANG.lower() and not is_owner:
+                if lang_code.lower() == (IGNORE_LANG or '').lower() and not is_owner:
                     print(f"{DEBUG_PREFIX}The message was ignored due to language.")
                     return
 
@@ -147,11 +173,9 @@ class Bot(commands.Bot):
         except Exception as e:
             print(f"{DEBUG_PREFIX}Error processing the message: {e}")
 
-
 async def main():
     bot = Bot()
     await bot.start()
-
 
 if __name__ == "__main__":
     run(main())
