@@ -41,6 +41,11 @@ except ImportError:
     IGNORE_LANG = DEFAULT_IGNORE_LANG
 
 try:
+    from config import IGNORE_TEXT
+except ImportError:
+    IGNORE_TEXT = []
+
+try:
     from config import OWNER_TO_PEOPLE
 except ImportError:
     OWNER_TO_PEOPLE = DEFAULT_OWNER_TO_PEOPLE
@@ -131,6 +136,10 @@ class Bot(commands.Bot):
             if message.author.display_name.lower() in [user.lower() for user in IGNORE_USERS]:
                 print(f"{DEBUG_PREFIX}User is ignored, won't translate.")
                 return
+
+        if any(word.lower() in message.content.lower() for word in IGNORE_TEXT):
+            print(f"{DEBUG_PREFIX}Message ignored due to ignored text: {message.content}")
+            return
 
         print(f"\n{DEBUG_PREFIX}Message received: {message.content} from {message.author.display_name}")
 
