@@ -1,5 +1,4 @@
 OAUTH_TOKEN = "get_this_in_twitchtokengenerator_dot_com_connect_your_bot"
-BOT_NAME = "your_bot_account_nickname"
 BOT_CLIENT_ID = "get_this_in_twitchtokengenerator_dot_com_connect_your_bot"
 CHANNEL = "yourfriendlychannel"
 
