@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        pip install pyinstaller
+        pip install pyinstaller pip-system-certs
 
     - name: Build Executable
       run: |
@@ -50,7 +50,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        pip install pyinstaller
+        pip install pyinstaller pip-system-certs
 
     - name: Build Executable
       run: |
