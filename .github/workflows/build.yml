@@ -30,7 +30,7 @@ jobs:
         move dist\bot.exe output\bot.exe
 
     - name: Upload Executable
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: bot-executable
         path: output/bot.exe
