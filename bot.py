@@ -3,15 +3,28 @@ from aiohttp import ClientSession
 from twitchio.ext import commands
 from async_google_trans_new import AsyncTranslator
 from random import choice
-from config import (
-    BOT_OAUTH_TOKEN,
-    BOT_CLIENT_ID,
-    CHANNEL,
-)
+from sys import exit
+
+DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
+
+try:
+    from config import (
+        BOT_OAUTH_TOKEN,
+        BOT_CLIENT_ID,
+        CHANNEL,
+    )
+except ImportError:
+    print(f"{DEBUG_PREFIX}Error: The config.py file is required and was not found.")
+    exit(1)
+
+
+DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
 
 DEFAULT_MESSAGE_INTERVAL = 2400
 DEFAULT_IGNORE_LANG = None
 DEFAULT_OWNER_TO_PEOPLE = "en"
+
+
 
 try:
     from config import BOT_INTRO_MESSAGES
@@ -49,8 +62,6 @@ try:
     from config import OWNER_TO_PEOPLE
 except ImportError:
     OWNER_TO_PEOPLE = DEFAULT_OWNER_TO_PEOPLE
-
-DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
 
 class Bot(commands.Bot):
 
