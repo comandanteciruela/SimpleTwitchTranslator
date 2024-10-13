@@ -1,4 +1,5 @@
 from asyncio import run, sleep, create_task
+from aiohttp import ClientSession
 from twitchio.ext import commands
 from async_google_trans_new import AsyncTranslator
 from random import choice
