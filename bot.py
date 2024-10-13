@@ -8,7 +8,6 @@ from config import (
     CHANNEL,
     IGNORE_LANG,
     OWNER_TO_PEOPLE,
-    BOT_NAME,
     IGNORE_USERS,
     MESSAGES,
     MESSAGE_INTERVAL,
