@@ -14,9 +14,9 @@ DEFAULT_IGNORE_LANG = None
 DEFAULT_OWNER_TO_PEOPLE = "en"
 
 try:
-    from config import WELCOME_MESSAGE
+    from config import BOT_INTRO_MESSAGE
 except ImportError:
-    WELCOME_MESSAGE = None
+    BOT_INTRO_MESSAGE = None
 
 try:
     from config import RANDOM_MESSAGES
@@ -80,8 +80,8 @@ class Bot(commands.Bot):
         print(f"{DEBUG_PREFIX}Account name: {self.bot_display_name}")
         print(f"{DEBUG_PREFIX}Bot ID: {self.bot_id}")
 
-        if WELCOME_MESSAGE and isinstance(WELCOME_MESSAGE, str) and WELCOME_MESSAGE.strip():
-            await self.bot_connected_channel.send(WELCOME_MESSAGE)
+        if BOT_INTRO_MESSAGE and isinstance(BOT_INTRO_MESSAGE, str) and BOT_INTRO_MESSAGE.strip():
+            await self.bot_connected_channel.send(BOT_INTRO_MESSAGE)
 
         create_task(self.send_random_messages())
 
