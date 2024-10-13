@@ -138,7 +138,6 @@ class Bot(commands.Bot):
                 return
 
         if any(word.lower() in message.content.lower() for word in IGNORE_TEXT):
-            print(f"{DEBUG_PREFIX}Message ignored due to ignored text: {message.content}")
             return
 
         print(f"\n{DEBUG_PREFIX}Message received: {message.content} from {message.author.display_name}")
