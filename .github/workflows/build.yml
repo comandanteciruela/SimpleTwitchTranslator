@@ -1,0 +1,36 @@
+name: Build Executable
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build Executable
+      run: |
+        pyinstaller --onefile --windowed bot.py
+        mkdir output
+        move dist\bot.exe output\bot.exe
+
+    - name: Upload Executable
+      uses: actions/upload-artifact@v2
+      with:
+        name: bot-executable
+        path: output/bot.exe
