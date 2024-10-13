@@ -4,6 +4,7 @@ from twitchio.ext import commands
 from async_google_trans_new import AsyncTranslator
 from random import choice
 from sys import exit
+from ssl import create_default_context
 
 DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
 
@@ -23,7 +24,6 @@ DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
 DEFAULT_MESSAGE_INTERVAL = 2400
 DEFAULT_IGNORE_LANG = None
 DEFAULT_OWNER_TO_PEOPLE = "en"
-
 
 
 try:
@@ -73,6 +73,7 @@ class Bot(commands.Bot):
         self.websocket_ready = False
         self.bot_id = None
         self.bot_login = None
+        self.ssl_context = create_default_context()
 
     async def event_ready(self):
         while True:
@@ -123,6 +124,7 @@ class Bot(commands.Bot):
                         "Authorization": f"Bearer {BOT_OAUTH_TOKEN}",
                         "Client-Id": BOT_CLIENT_ID,
                     },
+                    ssl=self.ssl_context
                 ) as response:
                     if response.status == 200:
                         print(f"{DEBUG_PREFIX}Successful connection.")
