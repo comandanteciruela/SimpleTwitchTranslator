@@ -48,7 +48,8 @@ class Bot(commands.Bot):
         print(f"{DEBUG_PREFIX}Account name: {self.bot_display_name}")
         print(f"{DEBUG_PREFIX}Bot ID: {self.bot_id}")
 
-        await self.bot_connected_channel.send(WELCOME_MESSAGE)
+        if WELCOME_MESSAGE:
+            await self.bot_connected_channel.send(WELCOME_MESSAGE)
 
         create_task(self.send_random_messages())
 
