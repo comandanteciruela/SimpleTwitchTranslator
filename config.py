@@ -7,7 +7,7 @@ CHANNEL = "yourfriendlychannel"
 IGNORE_LANG = "es"
 OWNER_TO_PEOPLE = "en"
 WELCOME_MESSAGE = "I am now here! SMOrc"
-MESSAGES = [
+RANDOM_MESSAGES = [
     "Hello, welcome to my channel!",
     "Remember to follow the rules.",
     "Enjoy!",
