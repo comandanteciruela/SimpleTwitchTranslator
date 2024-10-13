@@ -1,0 +1,2 @@
+async_google_trans_new==1.4.6
+twitchio==2.10.0
