@@ -119,14 +119,9 @@ class Bot(commands.Bot):
 
             if isinstance(detected_lang, list) and len(detected_lang) == 2:
                 lang_code = detected_lang[0].lower()
-                if (
-                    lang_code.lower() == IGNORE_LANG.lower()
-                    and message.author.display_name.lower()
-                    != (
-                        self.bot_connected_channel
-                        == self.get_channel(CHANNEL)
-                    )
-                ):
+                is_owner = message.author.display_name.lower() == CHANNEL.lower()
+
+                if lang_code.lower() == IGNORE_LANG.lower() and not is_owner:
                     print(f"{DEBUG_PREFIX}The message was ignored due to language.")
                     return
 
