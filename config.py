@@ -11,7 +11,7 @@ IGNORE_TEXT = [
     "AAAAHHHH!!!!",
 ]
 OWNER_TO_PEOPLE = "en"
-WELCOME_MESSAGE = "I am now here! SMOrc"
+BOT_INTRO_MESSAGE = "Guess who’s back from the void? (๑•̀ㅂ•́)و✧"
 RANDOM_MESSAGES = [
     "Hello, welcome to my channel!",
     "Remember to follow the rules.",
