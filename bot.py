@@ -56,7 +56,7 @@ class Bot(commands.Bot):
     async def send_random_messages(self):
         while True:
             await sleep(MESSAGE_INTERVAL)
-            if self.websocket_ready:
+            if self.websocket_ready and MESSAGES:
                 message = choice(MESSAGES)
                 await self.bot_connected_channel.send(message)
                 print(f"\n{DEBUG_PREFIX}Sent random message: {message}")
