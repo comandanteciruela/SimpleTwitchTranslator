@@ -7,16 +7,15 @@ from config import (
     BOT_CLIENT_ID,
     CHANNEL,
 )
-from aiohttp import ClientSession
 
 DEFAULT_MESSAGE_INTERVAL = 2400
 DEFAULT_IGNORE_LANG = None
 DEFAULT_OWNER_TO_PEOPLE = "en"
 
 try:
-    from config import BOT_INTRO_MESSAGE
+    from config import BOT_INTRO_MESSAGES
 except ImportError:
-    BOT_INTRO_MESSAGE = None
+    BOT_INTRO_MESSAGES = []
 
 try:
     from config import RANDOM_MESSAGES
@@ -80,8 +79,10 @@ class Bot(commands.Bot):
         print(f"{DEBUG_PREFIX}Account name: {self.bot_display_name}")
         print(f"{DEBUG_PREFIX}Bot ID: {self.bot_id}")
 
-        if BOT_INTRO_MESSAGE and isinstance(BOT_INTRO_MESSAGE, str) and BOT_INTRO_MESSAGE.strip():
-            await self.bot_connected_channel.send(BOT_INTRO_MESSAGE)
+        if isinstance(BOT_INTRO_MESSAGES, list) and BOT_INTRO_MESSAGES:
+            intro_message = choice(BOT_INTRO_MESSAGES)
+            await self.bot_connected_channel.send(intro_message)
+            await sleep(1)  # Espera después de enviar el mensaje
 
         create_task(self.send_random_messages())
 
