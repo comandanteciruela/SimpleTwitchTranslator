@@ -19,9 +19,9 @@ except ImportError:
     WELCOME_MESSAGE = None
 
 try:
-    from config import MESSAGES
+    from config import RANDOM_MESSAGES
 except ImportError:
-    MESSAGES = []
+    RANDOM_MESSAGES = []
 
 try:
     from config import IGNORE_USERS
@@ -89,8 +89,8 @@ class Bot(commands.Bot):
 
         while True:
             await sleep(interval)
-            if self.websocket_ready and MESSAGES and any(isinstance(msg, str) for msg in MESSAGES):
-                message = choice(MESSAGES)
+            if self.websocket_ready and RANDOM_MESSAGES and any(isinstance(msg, str) for msg in RANDOM_MESSAGES):
+                message = choice(RANDOM_MESSAGES)
                 await self.bot_connected_channel.send(message)
                 print(f"\n{DEBUG_PREFIX}Sent random message: {message}")
 
