@@ -35,6 +35,8 @@ except ImportError:
 
 try:
     from config import IGNORE_LANG
+    if not (isinstance(IGNORE_LANG, str) and len(IGNORE_LANG) == 2):
+        IGNORE_LANG = DEFAULT_IGNORE_LANG
 except ImportError:
     IGNORE_LANG = DEFAULT_IGNORE_LANG
 
