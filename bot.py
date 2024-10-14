@@ -11,20 +11,23 @@ try:
     from config import (
         BOT_OAUTH_TOKEN,
         BOT_CLIENT_ID,
-        CHANNEL,
+        CHANNEL_NAME,
+        CHANNEL_NATIVE_LANG,
+        TRANSLATE_TO_LANG,
     )
 except ImportError:
-    print(f"{DEBUG_PREFIX}Error: The config.py file is required and was not found.")
+    print(f"{DEBUG_PREFIX}Error: Couldn't load config.py correctly. Please configure it properly.")
     exit(1)
 
+if not (isinstance(CHANNEL_NATIVE_LANG, str) and len(CHANNEL_NATIVE_LANG) == 2):
+    print(f"{DEBUG_PREFIX}Error: CHANNEL_NATIVE_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
+    exit(1)
 
-DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
+if not (isinstance(TRANSLATE_TO_LANG, str) and len(TRANSLATE_TO_LANG) == 2):
+    print(f"{DEBUG_PREFIX}Error: TRANSLATE_TO_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
+    exit(1)
 
 DEFAULT_MESSAGE_INTERVAL = 2400
-DEFAULT_IGNORE_LANG = None
-DEFAULT_OWNER_TO_PEOPLE = "en"
-
-
 
 try:
     from config import BOT_INTRO_MESSAGES
@@ -47,27 +50,16 @@ except ImportError:
     MESSAGE_INTERVAL = DEFAULT_MESSAGE_INTERVAL
 
 try:
-    from config import IGNORE_LANG
-    if not (isinstance(IGNORE_LANG, str) and len(IGNORE_LANG) == 2):
-        IGNORE_LANG = DEFAULT_IGNORE_LANG
-except ImportError:
-    IGNORE_LANG = DEFAULT_IGNORE_LANG
-
-try:
     from config import IGNORE_TEXT
 except ImportError:
     IGNORE_TEXT = []
 
-try:
-    from config import OWNER_TO_PEOPLE
-except ImportError:
-    OWNER_TO_PEOPLE = DEFAULT_OWNER_TO_PEOPLE
 
 class Bot(commands.Bot):
 
     def __init__(self):
         super().__init__(
-            token=BOT_OAUTH_TOKEN, prefix="!", initial_channels=[CHANNEL]
+            token=BOT_OAUTH_TOKEN, prefix="!", initial_channels=[CHANNEL_NAME]
         )
         self.translator = AsyncTranslator()
         self.websocket_ready = False
@@ -85,7 +77,7 @@ class Bot(commands.Bot):
         self.websocket_ready = True
         self.bot_id = bot_data["id"]
         self.bot_display_name = bot_data["display_name"]
-        self.bot_connected_channel = self.get_channel(CHANNEL)
+        self.bot_connected_channel = self.get_channel(CHANNEL_NAME)
         print(f"{DEBUG_PREFIX}Bot data connection info: {bot_data}")
         print(f"{DEBUG_PREFIX}{self.bot_connected_channel}")
         print(f"{DEBUG_PREFIX}Account name: {self.bot_display_name}")
@@ -165,20 +157,28 @@ class Bot(commands.Bot):
 
     async def handle_translation(self, message):
         try:
-            await sleep(0.5)
+            await sleep(0.35)
             detected_lang = await self.translator.detect(message.content)
 
             if isinstance(detected_lang, list) and len(detected_lang) == 2:
                 lang_code = detected_lang[0].lower()
-                is_owner = message.author.display_name.lower() == CHANNEL.lower()
+                is_owner = message.author.display_name.lower() == CHANNEL_NAME.lower()
 
-                if lang_code.lower() == (IGNORE_LANG or '').lower() and not is_owner:
-                    print(f"{DEBUG_PREFIX}The message was ignored due to language.")
-                    return
+                if is_owner:
+                    if lang_code == CHANNEL_NATIVE_LANG:
+                        target_lang = TRANSLATE_TO_LANG
+                    elif lang_code == TRANSLATE_TO_LANG:
+                        target_lang = CHANNEL_NATIVE_LANG
+                    else:
+                        return
 
-                target_lang = "es" if lang_code == "en" else OWNER_TO_PEOPLE
+                else:
+                    if lang_code == CHANNEL_NATIVE_LANG:
+                        return
+                    else:
+                        target_lang = TRANSLATE_TO_LANG
 
-                await sleep(0.5)
+                await sleep(0.35)
                 translated_text = await self.translator.translate(
                     message.content, target_lang
                 )
@@ -187,11 +187,10 @@ class Bot(commands.Bot):
                     translated_text = translated_text[0]
 
                 if translated_text:
-                    await sleep(0.5)
+                    await sleep(0.35)
                     formatted_message = f"{translated_text} [by {message.author.display_name}] ({lang_code} > {target_lang})"
                     print(f"{DEBUG_PREFIX}Message sent: {formatted_message}")
                     await self.bot_connected_channel.send(f"/me {formatted_message}")
-
 
                 else:
                     print(f"{DEBUG_PREFIX}Could not translate the message.")
