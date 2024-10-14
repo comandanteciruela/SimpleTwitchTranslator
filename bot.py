@@ -34,7 +34,7 @@ except ImportError:
     exit(1)
 
 
-DEFAULT_MESSAGE_INTERVAL = 2400
+DEFAULT_RANDOM_MESSAGES_INTERVAL = 2400
 
 try:
     from config import BOT_INTRO_MESSAGES
@@ -52,9 +52,9 @@ except ImportError:
     IGNORE_USERS = []
 
 try:
-    from config import MESSAGE_INTERVAL
+    from config import RANDOM_MESSAGES_INTERVAL
 except ImportError:
-    MESSAGE_INTERVAL = DEFAULT_MESSAGE_INTERVAL
+    RANDOM_MESSAGES_INTERVAL = DEFAULT_RANDOM_MESSAGES_INTERVAL
 
 try:
     from config import IGNORE_TEXT
@@ -98,11 +98,11 @@ class Bot(commands.Bot):
         create_task(self.send_random_messages())
 
     async def send_random_messages(self):
-        interval = MESSAGE_INTERVAL
+        interval = RANDOM_MESSAGES_INTERVAL
 
         if not (isinstance(interval, (int, float)) and interval > 0):
-            print(f"{DEBUG_PREFIX}Invalid MESSAGE_INTERVAL; defaulting to {DEFAULT_MESSAGE_INTERVAL} seconds.")
-            interval = DEFAULT_MESSAGE_INTERVAL
+            print(f"{DEBUG_PREFIX}Invalid RANDOM_MESSAGES_INTERVAL; defaulting to {DEFAULT_RANDOM_MESSAGES_INTERVAL} seconds.")
+            interval = DEFAULT_RANDOM_MESSAGES_INTERVAL
 
         while True:
             await sleep(interval)
