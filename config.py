@@ -21,5 +21,5 @@ RANDOM_MESSAGES = [
     "Remember to follow the rules.",
     "Enjoy!",
 ]
-RANDOM_MESSAGE_INTERVAL = 2400
+RANDOM_MESSAGES_INTERVAL = 2400
 IGNORE_USERS = ["johnson_robert_johnson", "robert_von_smith", "dr_alphonse_aubert"]
