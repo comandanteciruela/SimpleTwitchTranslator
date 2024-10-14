@@ -1,66 +1,47 @@
-name: Build Executable
+name: Build
 
 on:
   push:
     branches:
       - main
-      - '**'  # También permite compilaciones en otros branches
+      - dev  # O cualquier branch que estés usando
+  pull_request:
+    branches:
+      - main
+      - dev
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v2
         with:
-          python-version: '3.11'
+          python-version: '3.9'  # Cambia según la versión que necesites
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pyinstaller certifi
 
-      - name: Build Executable
+      - name: Build with PyInstaller
         run: |
-          pyinstaller --onefile --windowed bot.py
-          mkdir output
-          move dist\bot.exe output\bot.exe
+          pip install pyinstaller
+          pyinstaller --onefile bot.py  # Cambia 'bot.py' por el nombre de tu script si es diferente
 
-      - name: Upload Windows Executable
-        uses: actions/upload-artifact@v4
-        with:
-          name: bot-executable-windows
-          path: output/bot.exe
-
-  build-linux:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
+      - name: Archive binaries for Linux
+        if: runner.os == 'Linux'
         run: |
-          pip install -r requirements.txt
-          pip install pyinstaller certifi
+          tar -czf bot-linux.tar.gz dist/bot  # Cambia 'bot' por el nombre de tu script
 
-      - name: Build Executable
+      - name: Archive binaries for Windows
+        if: runner.os == 'Windows'
         run: |
-          pyinstaller --onefile bot.py
-          mkdir output
-          mv dist/bot output/bot
-
-      - name: Upload Linux Executable
-        uses: actions/upload-artifact@v4
-        with:
-          name: bot-executable-linux
-          path: output/bot
+          zip -r bot-windows.zip dist/bot.exe  # Cambia 'bot.exe' por el nombre de tu script
