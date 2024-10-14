@@ -1,5 +1,5 @@
 from asyncio import run, sleep, create_task
-from httpx import AsyncClient
+from aiohttp import ClientSession
 from twitchio.ext import commands
 from async_google_trans_new import AsyncTranslator
 from random import choice
@@ -17,9 +17,14 @@ except ImportError:
     print(f"{DEBUG_PREFIX}Error: The config.py file is required and was not found.")
     exit(1)
 
+
+DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
+
 DEFAULT_MESSAGE_INTERVAL = 2400
 DEFAULT_IGNORE_LANG = None
 DEFAULT_OWNER_TO_PEOPLE = "en"
+
+
 
 try:
     from config import BOT_INTRO_MESSAGES
@@ -111,25 +116,25 @@ class Bot(commands.Bot):
     async def check_connection(self):
         print(f"{DEBUG_PREFIX}Trying to connect...")
         try:
-            async with AsyncClient() as client:
-                response = await client.get(
+            async with ClientSession() as session:
+                async with session.get(
                     "https://api.twitch.tv/helix/users",
                     headers={
                         "Authorization": f"Bearer {BOT_OAUTH_TOKEN}",
                         "Client-Id": BOT_CLIENT_ID,
-                    }
-                )
-                if response.status_code == 200:
-                    print(f"{DEBUG_PREFIX}Successful connection.")
-                    data = response.json()
-                    if data.get("data"):
-                        return True, data["data"][0]
+                    },
+                ) as response:
+                    if response.status == 200:
+                        print(f"{DEBUG_PREFIX}Successful connection.")
+                        data = await response.json()
+                        if data.get("data"):
+                            return True, data["data"][0]
+                        else:
+                            print(f"{DEBUG_PREFIX}No user data found.")
+                            return False, None
                     else:
-                        print(f"{DEBUG_PREFIX}No user data found.")
+                        print(f"{DEBUG_PREFIX}Connection error: {response.status}")
                         return False, None
-                else:
-                    print(f"{DEBUG_PREFIX}Connection error: {response.status_code}")
-                    return False, None
         except Exception as e:
             print(f"{DEBUG_PREFIX}Connection error: {e}")
             return False, None
