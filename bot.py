@@ -189,8 +189,8 @@ class Bot(commands.Bot):
                 if translated_text:
                     await sleep(0.70)
                     formatted_message = f"{translated_text} [by {message.author.display_name}] ({lang_code} > {target_lang})"
-                    await self.bot_connected_channel.send(f"/me {formatted_message}")
                     print(f"{DEBUG_PREFIX}Message sent: {formatted_message}")
+                    await self.bot_connected_channel.send(f"/me {formatted_message}")
 
 
                 else:
