@@ -6,6 +6,8 @@ from random import choice
 from sys import exit
 
 DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
+def is_valid(token):
+    return isinstance(token, str) and len(token) > 18 and token.isalnum()
 
 try:
     from config import (
@@ -15,17 +17,22 @@ try:
         CHANNEL_NATIVE_LANG,
         TRANSLATE_TO_LANG,
     )
+    for var, name in zip([BOT_OAUTH_TOKEN, BOT_CLIENT_ID], ["BOT_OAUTH_TOKEN", "BOT_CLIENT_ID"]):
+        if not is_valid(var):
+            print(f"{DEBUG_PREFIX}Error: {name} must be a string with more than 18 alphanumeric characters.")
+            exit(1)
+
+    if not (isinstance(CHANNEL_NATIVE_LANG, str) and len(CHANNEL_NATIVE_LANG) == 2):
+        print(f"{DEBUG_PREFIX}Error: CHANNEL_NATIVE_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
+        exit(1)
+
+    if not (isinstance(TRANSLATE_TO_LANG, str) and len(TRANSLATE_TO_LANG) == 2):
+        print(f"{DEBUG_PREFIX}Error: TRANSLATE_TO_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
+        exit(1)
 except ImportError:
     print(f"{DEBUG_PREFIX}Error: Couldn't load config.py correctly. Please configure it properly.")
     exit(1)
 
-if not (isinstance(CHANNEL_NATIVE_LANG, str) and len(CHANNEL_NATIVE_LANG) == 2):
-    print(f"{DEBUG_PREFIX}Error: CHANNEL_NATIVE_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
-    exit(1)
-
-if not (isinstance(TRANSLATE_TO_LANG, str) and len(TRANSLATE_TO_LANG) == 2):
-    print(f"{DEBUG_PREFIX}Error: TRANSLATE_TO_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
-    exit(1)
 
 DEFAULT_MESSAGE_INTERVAL = 2400
 
