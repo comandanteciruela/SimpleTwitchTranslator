@@ -20,11 +20,13 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt pyinstaller
+        pip install -r requirements.txt
+        pip install certifi
 
     - name: Build Executable
       run: |
-        pyinstaller --onefile --windowed bot.py
+        certifi_path=$(python -c "import certifi; print(certifi.where())")
+        pyinstaller --onefile --windowed --add-data "$certifi_path;." bot.py
         mkdir output
         move dist\bot.exe output\bot.exe
 
@@ -46,18 +48,15 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install CA certificates
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ca-certificates
-
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt pyinstaller
+        pip install -r requirements.txt
+        pip install certifi
 
     - name: Build Executable
       run: |
-        pyinstaller --onefile bot.py
+        certifi_path=$(python -c "import certifi; print(certifi.where())")
+        pyinstaller --onefile --add-data "$certifi_path:." bot.py
         mkdir output
         mv dist/bot output/bot
 
