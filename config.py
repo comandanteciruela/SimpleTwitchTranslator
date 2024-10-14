@@ -2,10 +2,10 @@
 BOT_OAUTH_TOKEN = "get_this_in_twitchtokengenerator_dot_com_connect_your_bot"
 BOT_CLIENT_ID = "get_this_in_twitchtokengenerator_dot_com_connect_your_bot"
 CHANNEL = "yourfriendlychannel"
+CHANNEL_NATIVE_LANG = "en"
+TRANSLATE_TO_LANG = "es"
 
 # OPTIONAL CONFIG
-OWNER_TO_PEOPLE = "en"
-IGNORE_LANG = "es"
 IGNORE_TEXT = [
     "I'm eating water.",
     "Fek yoh!",
