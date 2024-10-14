@@ -165,7 +165,7 @@ class Bot(commands.Bot):
 
     async def handle_translation(self, message):
         try:
-            await sleep(0.70)
+            await sleep(0.5)
             detected_lang = await self.translator.detect(message.content)
 
             if isinstance(detected_lang, list) and len(detected_lang) == 2:
@@ -178,7 +178,7 @@ class Bot(commands.Bot):
 
                 target_lang = "es" if lang_code == "en" else OWNER_TO_PEOPLE
 
-                await sleep(0.70)
+                await sleep(0.5)
                 translated_text = await self.translator.translate(
                     message.content, target_lang
                 )
@@ -187,7 +187,7 @@ class Bot(commands.Bot):
                     translated_text = translated_text[0]
 
                 if translated_text:
-                    await sleep(0.70)
+                    await sleep(0.5)
                     formatted_message = f"{translated_text} [by {message.author.display_name}] ({lang_code} > {target_lang})"
                     print(f"{DEBUG_PREFIX}Message sent: {formatted_message}")
                     await self.bot_connected_channel.send(f"/me {formatted_message}")
