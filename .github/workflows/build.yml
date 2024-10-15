@@ -26,15 +26,11 @@ jobs:
 
       - name: Build the application
         run: |
-          pyinstaller --onefile --exclude-module config.py --name stt bot.py
-
-      - name: Copy config.py
-        run: |
-          cp config.py .
+          pyinstaller --onefile --exclude-module config.py bot.py
 
       - name: Create ZIP archive
         run: |
-          zip my-python-app.zip stt config.py
+          zip -r my-python-app.zip dist/bot config.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
