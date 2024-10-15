@@ -3,7 +3,7 @@ name: Build Executable
 on:
   push:
     branches:
-      - ssl-test  # Agrega aquí otros branches si lo deseas
+      - ssl-test
 
 jobs:
   build-windows:
@@ -25,10 +25,10 @@ jobs:
 
     - name: Build Executable
       run: |
-        certifi_path=$(python -c "import certifi; print(certifi.where())")
-        pyinstaller --onefile --windowed --add-data "$certifi_path:certifi/cacert.pem" bot.py
+        $certifi_path = python -c "import certifi; print(certifi.where())"
+        pyinstaller --onefile --windowed --add-data "$certifi_path;certifi/cacert.pem" bot.py
         mkdir output
-        move dist\bot.exe output\bot.exe
+        Move-Item -Path "dist\bot.exe" -Destination "output\bot.exe"
 
     - name: Upload Windows Executable
       uses: actions/upload-artifact@v4
