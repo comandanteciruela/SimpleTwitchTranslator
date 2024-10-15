@@ -6,14 +6,14 @@ on:
       - ssl-test
       
 jobs:
-  build_matrix:
+  compile:
     strategy:
       matrix:
         env: [linux, windows]
         include:
           - env: linux
             os: ubuntu-latest
-            bin: bot  # Cambiado a "bot" ya que es el nombre predeterminado
+            bin: stt-linux
             archive: zip
           - env: windows
             os: windows-latest
@@ -39,24 +39,18 @@ jobs:
       - name: Build the application
         run: |
           if [ "${{ matrix.env }}" == "linux" ]; then
-            pyinstaller --onefile --distpath ./ --exclude-module config.py bot.py
+            pyinstaller --onefile --exclude-module config.py bot.py
           else
-            pyinstaller --onefile --distpath ./ --exclude-module config.py bot.py
+            pyinstaller --onefile --exclude-module config.py bot.py
           fi
-        shell: bash
-        
-      - name: List generated files
-        run: |
-          ls -la ./  # Para Linux
-          dir .      # Para Windows
         shell: bash
         
       - name: Create archive
         run: |
           if [ "${{ matrix.env }}" == "linux" ]; then
-            zip -r stt.zip ./bot  # Asegúrate de usar el nombre correcto
+            zip -r stt.zip ./stt-linux
           else
-            powershell -Command "Compress-Archive -Path .\stt-windows.exe -DestinationPath stt.zip"
+            powershell -Command "Compress-Archive -Path .\dist\stt-windows.exe -DestinationPath stt.zip"
           fi
         shell: bash
         
