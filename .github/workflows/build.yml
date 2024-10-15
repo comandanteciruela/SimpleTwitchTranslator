@@ -1,61 +1,29 @@
-name: Creating binaries for Windows and Linux
+name: Python Application CI
 
 on:
   push:
     branches:
       - ssl-test
-      
+
 jobs:
-  compile:
-    strategy:
-      matrix:
-        env: [linux, windows]
-        include:
-          - env: linux
-            os: ubuntu-latest
-            bin: stt-linux
-            archive: zip
-          - env: windows
-            os: windows-latest
-            bin: stt-windows.exe
-            archive: zip
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 4
+  build:
+    runs-on: ubuntu-latest
+
     steps:
       - name: Check out the code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         
       - name: Set up Python
-        uses: actions/setup-python@v5
-        with: 
-          python-version: "3.11"
-          
-      - name: Install all dependencies
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pyinstaller certifi
-          
+          pip install pyinstaller
+
       - name: Build the application
         run: |
-          if [ "${{ matrix.env }}" == "linux" ]; then
-            pyinstaller --onefile --exclude-module config.py bot.py
-          else
-            pyinstaller --onefile --exclude-module config.py bot.py
-          fi
-        shell: bash
-        
-      - name: Create archive
-        run: |
-          if [ "${{ matrix.env }}" == "linux" ]; then
-            zip -r stt.zip ./stt-linux
-          else
-            powershell -Command "Compress-Archive -Path .\dist\stt-windows.exe -DestinationPath stt.zip"
-          fi
-        shell: bash
-        
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.bin }}
-          path: stt.zip
+          pyinstaller --onefile --exclude-module config.py bot.py
