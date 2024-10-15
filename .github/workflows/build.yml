@@ -3,7 +3,7 @@ name: Build Executable
 on:
   push:
     branches:
-      - main
+      - ssl-test  # Agrega aquí otros branches si lo deseas
 
 jobs:
   build-windows:
@@ -64,3 +64,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: bot-executable-linux
+        path: output/bot
