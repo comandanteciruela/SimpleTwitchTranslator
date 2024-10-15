@@ -20,12 +20,13 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt pyinstaller certifi
+        pip install -r requirements.txt
+        pip install pyinstaller certifi
 
     - name: Build Executable
       run: |
         certifi_path=$(python -c "import certifi; print(certifi.where())")
-        pyinstaller --onefile --windowed --add-data "$certifi_path;." bot.py
+        pyinstaller --onefile --windowed --add-data "$certifi_path:certifi/cacert.pem" bot.py
         mkdir output
         move dist\bot.exe output\bot.exe
 
@@ -49,12 +50,13 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt pyinstaller certifi
+        pip install -r requirements.txt
+        pip install pyinstaller certifi
 
     - name: Build Executable
       run: |
         certifi_path=$(python -c "import certifi; print(certifi.where())")
-        pyinstaller --onefile --add-data "$certifi_path:." bot.py
+        pyinstaller --onefile --add-data "$certifi_path:certifi/cacert.pem" bot.py
         mkdir output
         mv dist/bot output/bot
 
@@ -62,4 +64,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: bot-executable-linux
-        path: output/bot
+   
