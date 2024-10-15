@@ -32,10 +32,12 @@ jobs:
         run: |
           cp config.py .
 
+      - name: Create ZIP archive
+        run: |
+          zip my-python-app.zip stt config.py
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: my-python-app
-          path: |
-            stt
-            config.py
+          path: my-python-app.zip
