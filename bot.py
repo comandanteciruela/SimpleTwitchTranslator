@@ -3,8 +3,8 @@ from aiohttp import ClientSession
 from twitchio.ext import commands
 from async_google_trans_new import AsyncTranslator
 from random import choice
-from sys import exit, executable, version_info, _MEIPASS
-from os.path import dirname, join, exists
+from sys import exit, executable, version_info
+from os.path import dirname, join, exists, abspath
 
 from importlib.util import spec_from_file_location, module_from_spec
 
@@ -12,11 +12,8 @@ DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
 def is_valid(token):
     return isinstance(token, str) and len(token) > 18 and token.isalnum()
 
-# Obtener la ruta del archivo actual
-if getattr(version_info, 'frozen', False):
-    current_dir = _MEIPASS  # Directorio temporal de PyInstaller
-else:
-    current_dir = dirname(__file__)  # Directorio del script
+# Obtener la ruta del directorio actual
+current_dir = abspath(".")  # Usar el directorio actual
 
 # Construir la ruta completa al archivo de configuración
 config_path = join(current_dir, 'config.py')
