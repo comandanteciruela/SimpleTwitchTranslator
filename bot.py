@@ -1,13 +1,13 @@
 from asyncio import run, sleep, create_task
-from aiohttp import ClientSession, TCPConnector
-from ssl import create_default_context
-from certifi import where
+from aiohttp import ClientSession
 from twitchio.ext import commands
 from async_google_trans_new import AsyncTranslator
 from random import choice
 from sys import exit
 from os.path import join, exists, abspath
 from importlib.util import spec_from_file_location, module_from_spec
+from ssl import create_default_context
+from certifi import where
 
 DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
 
@@ -19,7 +19,7 @@ current_dir = abspath(".")
 config_path = join(current_dir, 'config.py')
 
 if not exists(config_path):
-    print(f"{DEBUG_PREFIX}Error: config.py no se encuentra en {current_dir}.")
+    print(f"{DEBUG_PREFIX}Error: config.py is not in {current_dir}.")
     exit(1)
 
 try:
@@ -51,11 +51,30 @@ if not (isinstance(TRANSLATE_TO_LANG, str) and len(TRANSLATE_TO_LANG) == 2):
 
 DEFAULT_RANDOM_MESSAGES_INTERVAL = 2400
 
-BOT_INTRO_MESSAGES = getattr(config, 'BOT_INTRO_MESSAGES', [])
-RANDOM_MESSAGES = getattr(config, 'RANDOM_MESSAGES', [])
-IGNORE_USERS = getattr(config, 'IGNORE_USERS', [])
-RANDOM_MESSAGES_INTERVAL = getattr(config, 'RANDOM_MESSAGES_INTERVAL', DEFAULT_RANDOM_MESSAGES_INTERVAL)
-IGNORE_TEXT = getattr(config, 'IGNORE_TEXT', [])
+try:
+    BOT_INTRO_MESSAGES = config.BOT_INTRO_MESSAGES
+except AttributeError:
+    BOT_INTRO_MESSAGES = []
+
+try:
+    RANDOM_MESSAGES = config.RANDOM_MESSAGES
+except AttributeError:
+    RANDOM_MESSAGES = []
+
+try:
+    IGNORE_USERS = config.IGNORE_USERS
+except AttributeError:
+    IGNORE_USERS = []
+
+try:
+    RANDOM_MESSAGES_INTERVAL = config.RANDOM_MESSAGES_INTERVAL
+except AttributeError:
+    RANDOM_MESSAGES_INTERVAL = DEFAULT_RANDOM_MESSAGES_INTERVAL
+
+try:
+    IGNORE_TEXT = config.IGNORE_TEXT
+except AttributeError:
+    IGNORE_TEXT = []
 
 class Bot(commands.Bot):
 
@@ -85,7 +104,7 @@ class Bot(commands.Bot):
         print(f"{DEBUG_PREFIX}Account name: {self.bot_display_name}")
         print(f"{DEBUG_PREFIX}Bot ID: {self.bot_id}")
 
-        if BOT_INTRO_MESSAGES:
+        if isinstance(BOT_INTRO_MESSAGES, list) and BOT_INTRO_MESSAGES:
             intro_message = choice(BOT_INTRO_MESSAGES)
             await self.bot_connected_channel.send(intro_message)
             await sleep(1)
@@ -101,7 +120,7 @@ class Bot(commands.Bot):
 
         while True:
             await sleep(interval)
-            if self.websocket_ready and RANDOM_MESSAGES:
+            if self.websocket_ready and RANDOM_MESSAGES and any(isinstance(msg, str) for msg in RANDOM_MESSAGES):
                 message = choice(RANDOM_MESSAGES)
                 await self.bot_connected_channel.send(message)
                 await sleep(1)
@@ -110,9 +129,8 @@ class Bot(commands.Bot):
     async def check_connection(self):
         print(f"{DEBUG_PREFIX}Trying to connect...")
         try:
-            # Crear un conector que use certifi
-            connector = TCPConnector(ssl=create_default_context(cafile=where()))
-            async with ClientSession(connector=connector) as session:
+            ssl_context = create_default_context(cafile=where())
+            async with ClientSession(ssl=ssl_context) as session:
                 async with session.get(
                     "https://api.twitch.tv/helix/users",
                     headers={
@@ -142,14 +160,16 @@ class Bot(commands.Bot):
         if message.author is None or message.author.id == self.bot_id:
             return
 
-        if IGNORE_USERS and any(user.lower() == message.author.display_name.lower() for user in IGNORE_USERS):
-            print(f"{DEBUG_PREFIX}User is ignored, won't translate.")
-            return
+        if isinstance(IGNORE_USERS, list) and any(isinstance(user, str) for user in IGNORE_USERS):
+            if message.author.display_name.lower() in [user.lower() for user in IGNORE_USERS]:
+                print(f"{DEBUG_PREFIX}User is ignored, won't translate.")
+                return
 
         if any(word.lower() in message.content.lower() for word in IGNORE_TEXT):
             return
 
         print(f"\n{DEBUG_PREFIX}Message received: {message.content} from {message.author.display_name}")
+
         await self.handle_commands(message)
 
         if message.content.startswith("!"):
@@ -167,14 +187,23 @@ class Bot(commands.Bot):
                 is_owner = message.author.display_name.lower() == CHANNEL_NAME.lower()
 
                 if is_owner:
-                    target_lang = TRANSLATE_TO_LANG if lang_code == CHANNEL_NATIVE_LANG else CHANNEL_NATIVE_LANG
+                    if lang_code == CHANNEL_NATIVE_LANG:
+                        target_lang = TRANSLATE_TO_LANG
+                    elif lang_code == TRANSLATE_TO_LANG:
+                        target_lang = CHANNEL_NATIVE_LANG
+                    else:
+                        return
+
                 else:
                     if lang_code == CHANNEL_NATIVE_LANG:
                         return
-                    target_lang = TRANSLATE_TO_LANG
+                    else:
+                        target_lang = TRANSLATE_TO_LANG
 
                 await sleep(0.35)
-                translated_text = await self.translator.translate(message.content, target_lang)
+                translated_text = await self.translator.translate(
+                    message.content, target_lang
+                )
 
                 if isinstance(translated_text, list) and translated_text:
                     translated_text = translated_text[0]
