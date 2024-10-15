@@ -4,7 +4,8 @@ from twitchio.ext import commands
 from async_google_trans_new import AsyncTranslator
 from random import choice
 from sys import exit, executable, version_info
-from os.path import dirname, join
+from os.path import dirname, join, exists
+
 from importlib.util import spec_from_file_location, module_from_spec
 
 DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
@@ -13,21 +14,23 @@ def is_valid(token):
 
 # Obtener la ruta del archivo actual
 if getattr(version_info, 'frozen', False):
-    current_dir = dirname(executable)
+    current_dir = dirname(executable)  # Directorio del binario
 else:
-    current_dir = dirname(__file__)
+    current_dir = dirname(__file__)  # Directorio del script
 
 # Construir la ruta completa al archivo de configuración
 config_path = join(current_dir, 'config.py')
+
+# Verificar si el archivo config.py existe en el directorio del binario
+if not exists(config_path):
+    print(f"{DEBUG_PREFIX}Error: config.py no se encuentra en {current_dir}.")
+    exit(1)
 
 # Intentar importar la configuración
 try:
     spec = spec_from_file_location("config", config_path)
     config = module_from_spec(spec)
     spec.loader.exec_module(config)
-
-    # Imprimir los atributos del módulo config
-    print(f"{DEBUG_PREFIX}Loaded config attributes: {dir(config)}")
 
     # Acceder a las variables de configuración
     BOT_OAUTH_TOKEN = config.BOT_OAUTH_TOKEN
@@ -37,6 +40,12 @@ try:
     TRANSLATE_TO_LANG = config.TRANSLATE_TO_LANG
 
     # Validaciones...
+
+except Exception as e:
+    print(f"{DEBUG_PREFIX}Error: Couldn't load config.py correctly: {e}")
+    exit(1)
+
+# Resto del código...
 
 
     # Validaciones
