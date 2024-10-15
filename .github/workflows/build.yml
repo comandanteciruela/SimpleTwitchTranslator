@@ -28,6 +28,11 @@ jobs:
         run: |
           pyinstaller --onefile --exclude-module config.py bot.py
 
+      - name: Move binary and config
+        run: |
+          cp config.py . || true  # Copiar el archivo config.py al directorio actual
+          mv dist/bot .  # Mover el binario al directorio raíz
+
       - name: Create ZIP archive
         run: |
           zip -r my-python-app.zip bot config.py
