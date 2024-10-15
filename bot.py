@@ -1,67 +1,52 @@
 from asyncio import run, sleep, create_task
-from aiohttp import ClientSession
+from aiohttp import ClientSession, TCPConnector
+from ssl import create_default_context
+from certifi import where
 from twitchio.ext import commands
 from async_google_trans_new import AsyncTranslator
 from random import choice
 from sys import exit, executable, version_info
 from os.path import dirname, join, exists, abspath
-
 from importlib.util import spec_from_file_location, module_from_spec
 
 DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
+
 def is_valid(token):
     return isinstance(token, str) and len(token) > 18 and token.isalnum()
 
-# Obtener la ruta del directorio actual
-current_dir = abspath(".")  # Usar el directorio actual
+current_dir = abspath(".")
 
-# Construir la ruta completa al archivo de configuración
 config_path = join(current_dir, 'config.py')
 
-# Verificar si el archivo config.py existe
 if not exists(config_path):
     print(f"{DEBUG_PREFIX}Error: config.py no se encuentra en {current_dir}.")
     exit(1)
 
-# Intentar importar la configuración
 try:
     spec = spec_from_file_location("config", config_path)
     config = module_from_spec(spec)
     spec.loader.exec_module(config)
-
-    # Acceder a las variables de configuración
     BOT_OAUTH_TOKEN = config.BOT_OAUTH_TOKEN
     BOT_CLIENT_ID = config.BOT_CLIENT_ID
     CHANNEL_NAME = config.CHANNEL_NAME
     CHANNEL_NATIVE_LANG = config.CHANNEL_NATIVE_LANG
     TRANSLATE_TO_LANG = config.TRANSLATE_TO_LANG
 
-    # Validaciones...
-
 except Exception as e:
     print(f"{DEBUG_PREFIX}Error: Couldn't load config.py correctly: {e}")
     exit(1)
 
-# Resto del código...
-
-
-
-    # Validaciones
-    for var, name in zip([BOT_OAUTH_TOKEN, BOT_CLIENT_ID], ["BOT_OAUTH_TOKEN", "BOT_CLIENT_ID"]):
-        if not is_valid(var):
-            print(f"{DEBUG_PREFIX}Error: {name} must be a string with more than 18 alphanumeric characters.")
-            exit(1)
-
-    if not (isinstance(CHANNEL_NATIVE_LANG, str) and len(CHANNEL_NATIVE_LANG) == 2):
-        print(f"{DEBUG_PREFIX}Error: CHANNEL_NATIVE_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
+for var, name in zip([BOT_OAUTH_TOKEN, BOT_CLIENT_ID], ["BOT_OAUTH_TOKEN", "BOT_CLIENT_ID"]):
+    if not is_valid(var):
+        print(f"{DEBUG_PREFIX}Error: {name} must be a string with more than 18 alphanumeric characters.")
         exit(1)
 
-    if not (isinstance(TRANSLATE_TO_LANG, str) and len(TRANSLATE_TO_LANG) == 2):
-        print(f"{DEBUG_PREFIX}Error: TRANSLATE_TO_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
-        exit(1)
+if not (isinstance(CHANNEL_NATIVE_LANG, str) and len(CHANNEL_NATIVE_LANG) == 2):
+    print(f"{DEBUG_PREFIX}Error: CHANNEL_NATIVE_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
+    exit(1)
 
-except Exception as e:
-    print(f"{DEBUG_PREFIX}Error: Couldn't load config.py correctly: {e}")
+if not (isinstance(TRANSLATE_TO_LANG, str) and len(TRANSLATE_TO_LANG) == 2):
+    print(f"{DEBUG_PREFIX}Error: TRANSLATE_TO_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
     exit(1)
 
 DEFAULT_RANDOM_MESSAGES_INTERVAL = 2400
@@ -90,8 +75,6 @@ try:
     IGNORE_TEXT = config.IGNORE_TEXT
 except AttributeError:
     IGNORE_TEXT = []
-
-
 
 class Bot(commands.Bot):
 
@@ -146,7 +129,9 @@ class Bot(commands.Bot):
     async def check_connection(self):
         print(f"{DEBUG_PREFIX}Trying to connect...")
         try:
-            async with ClientSession() as session:
+            # Crear un conector que use certifi
+            connector = TCPConnector(ssl=create_default_context(cafile=where()))
+            async with ClientSession(connector=connector) as session:
                 async with session.get(
                     "https://api.twitch.tv/helix/users",
                     headers={
