@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build and Upload Binary
 
 on:
   push:
@@ -6,42 +6,35 @@ on:
       - ssl-test
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.11'
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install pyinstaller
-
-      - name: Build Linux binary
-        run: |
-          pyinstaller --onefile --exclude-module config bot.py
-
-  build-windows:
-    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: 3.11
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
           pip install pyinstaller
+          pip install -r requirements.txt
 
-      - name: Build Windows binary
+      - name: Build binary
         run: |
-          pyinstaller --onefile --exclude-module config bot.py
+          pyinstaller --onefile bot.py
+
+      - name: Upload Binary
+        if: success()
+        uses: actions/upload-artifact@v2
+        with:
+          name: bot-binary-${{ runner.os }}
+          path: dist/bot  # Cambia "bot" por el nombre real del binario, si es diferente
+
