@@ -39,17 +39,17 @@ jobs:
       - name: Build the application
         run: |
           if [ "${{ matrix.env }}" == "linux" ]; then
-            pyinstaller --onefile --distpath ./dist --exclude-module config.py linux/bot.py
+            pyinstaller --onefile --distpath ./dist --exclude-module config.py bot.py
           else
-            pyinstaller --onefile --distpath ./dist --exclude-module config.py windows/bot.py
+            pyinstaller --onefile --distpath ./dist --exclude-module config.py bot.py
           fi
           
       - name: Create archive
         run: |
           if [ "${{ matrix.env }}" == "linux" ]; then
-            zip -r stt.zip ./dist/stt
+            zip -r stt.zip ./dist/bot
           else
-            zip -r stt.zip ./dist/stt.exe
+            zip -r stt.zip ./dist/bot.exe
           fi
           
       - name: Upload artifact
