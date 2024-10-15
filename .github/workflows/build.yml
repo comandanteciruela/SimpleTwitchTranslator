@@ -1,4 +1,4 @@
-name: Build and Upload Binary
+name: Build and Deploy
 
 on:
   push:
@@ -7,34 +7,29 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller
           pip install -r requirements.txt
 
-      - name: Build binary
+      - name: Build executable with PyInstaller
         run: |
+          pip install pyinstaller
           pyinstaller --onefile bot.py
 
-      - name: Upload Binary
-        if: success()
-        uses: actions/upload-artifact@v2
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: bot-binary-${{ runner.os }}
-          path: dist/bot  # Cambia "bot" por el nombre real del binario, si es diferente
-
+          name: bot-executable
+          path: dist/bot
