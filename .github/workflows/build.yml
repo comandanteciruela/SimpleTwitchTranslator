@@ -30,7 +30,7 @@ jobs:
 
       - name: Create ZIP archive
         run: |
-          zip -r my-python-app.zip BINARIO config.py
+          zip -r my-python-app.zip ./bot config.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
