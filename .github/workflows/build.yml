@@ -30,15 +30,13 @@ jobs:
 
       - name: Move binary and config
         run: |
-          cp config.py . || true  # Copiar el archivo config.py al directorio actual
-          mv dist/bot .  # Mover el binario al directorio raíz
-
-      - name: Create ZIP archive
-        run: |
-          zip my-python-app.zip ./bot ./config.py
+          cp config.py .
+          mv dist/bot .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: my-python-app
-          path: my-python-app.zip
+          path: |
+            bot
+            config.py
