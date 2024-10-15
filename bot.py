@@ -26,12 +26,18 @@ try:
     config = module_from_spec(spec)
     spec.loader.exec_module(config)
 
+    # Imprimir los atributos del módulo config
+    print(f"{DEBUG_PREFIX}Loaded config attributes: {dir(config)}")
+
     # Acceder a las variables de configuración
     BOT_OAUTH_TOKEN = config.BOT_OAUTH_TOKEN
     BOT_CLIENT_ID = config.BOT_CLIENT_ID
     CHANNEL_NAME = config.CHANNEL_NAME
     CHANNEL_NATIVE_LANG = config.CHANNEL_NATIVE_LANG
     TRANSLATE_TO_LANG = config.TRANSLATE_TO_LANG
+
+    # Validaciones...
+
 
     # Validaciones
     for var, name in zip([BOT_OAUTH_TOKEN, BOT_CLIENT_ID], ["BOT_OAUTH_TOKEN", "BOT_CLIENT_ID"]):
