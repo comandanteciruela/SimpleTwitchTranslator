@@ -30,8 +30,8 @@ jobs:
 
       - name: Move binary and config
         run: |
-          cp config.py .
-          mv dist/bot .
+          cp config.py . || true  # Copiar el archivo config.py al directorio actual
+          mv dist/bot .  # Mover el binario al directorio raíz
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
