@@ -3,7 +3,7 @@ from aiohttp import ClientSession
 from twitchio.ext import commands
 from async_google_trans_new import AsyncTranslator
 from random import choice
-from sys import exit, executable, version_info
+from sys import exit, executable, version_info, _MEIPASS
 from os.path import dirname, join, exists
 
 from importlib.util import spec_from_file_location, module_from_spec
@@ -14,14 +14,14 @@ def is_valid(token):
 
 # Obtener la ruta del archivo actual
 if getattr(version_info, 'frozen', False):
-    current_dir = dirname(executable)  # Directorio del binario
+    current_dir = _MEIPASS  # Directorio temporal de PyInstaller
 else:
     current_dir = dirname(__file__)  # Directorio del script
 
 # Construir la ruta completa al archivo de configuración
 config_path = join(current_dir, 'config.py')
 
-# Verificar si el archivo config.py existe en el directorio del binario
+# Verificar si el archivo config.py existe
 if not exists(config_path):
     print(f"{DEBUG_PREFIX}Error: config.py no se encuentra en {current_dir}.")
     exit(1)
@@ -46,6 +46,7 @@ except Exception as e:
     exit(1)
 
 # Resto del código...
+
 
 
     # Validaciones
