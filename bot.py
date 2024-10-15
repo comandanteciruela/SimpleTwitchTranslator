@@ -1,13 +1,12 @@
 from asyncio import run, sleep, create_task
-from aiohttp import ClientSession
+from http.client import HTTPSConnection
 from twitchio.ext import commands
 from async_google_trans_new import AsyncTranslator
 from random import choice
 from sys import exit
 from os.path import join, exists, abspath
 from importlib.util import spec_from_file_location, module_from_spec
-from ssl import create_default_context
-from certifi import where
+import json
 
 DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
 
@@ -31,7 +30,6 @@ try:
     CHANNEL_NAME = config.CHANNEL_NAME
     CHANNEL_NATIVE_LANG = config.CHANNEL_NATIVE_LANG
     TRANSLATE_TO_LANG = config.TRANSLATE_TO_LANG
-
 except Exception as e:
     print(f"{DEBUG_PREFIX}Error: Couldn't load config.py correctly: {e}")
     exit(1)
@@ -129,26 +127,26 @@ class Bot(commands.Bot):
     async def check_connection(self):
         print(f"{DEBUG_PREFIX}Trying to connect...")
         try:
-            ssl_context = create_default_context(cafile=where())
-            async with ClientSession(ssl=ssl_context) as session:
-                async with session.get(
-                    "https://api.twitch.tv/helix/users",
-                    headers={
-                        "Authorization": f"Bearer {BOT_OAUTH_TOKEN}",
-                        "Client-Id": BOT_CLIENT_ID,
-                    },
-                ) as response:
-                    if response.status == 200:
-                        print(f"{DEBUG_PREFIX}Successful connection.")
-                        data = await response.json()
-                        if data.get("data"):
-                            return True, data["data"][0]
-                        else:
-                            print(f"{DEBUG_PREFIX}No user data found.")
-                            return False, None
-                    else:
-                        print(f"{DEBUG_PREFIX}Connection error: {response.status}")
-                        return False, None
+            conn = HTTPSConnection("api.twitch.tv")
+            headers = {
+                "Authorization": f"Bearer {BOT_OAUTH_TOKEN}",
+                "Client-Id": BOT_CLIENT_ID,
+            }
+            conn.request("GET", "/helix/users", headers=headers)
+            response = conn.getresponse()
+            data = response.read().decode()
+
+            if response.status == 200:
+                print(f"{DEBUG_PREFIX}Successful connection.")
+                user_data = json.loads(data)
+                if user_data.get("data"):
+                    return True, user_data["data"][0]
+                else:
+                    print(f"{DEBUG_PREFIX}No user data found.")
+                    return False, None
+            else:
+                print(f"{DEBUG_PREFIX}Connection error: {response.status}")
+                return False, None
         except Exception as e:
             print(f"{DEBUG_PREFIX}Connection error: {e}")
             return False, None
@@ -193,7 +191,6 @@ class Bot(commands.Bot):
                         target_lang = CHANNEL_NATIVE_LANG
                     else:
                         return
-
                 else:
                     if lang_code == CHANNEL_NATIVE_LANG:
                         return
@@ -201,9 +198,7 @@ class Bot(commands.Bot):
                         target_lang = TRANSLATE_TO_LANG
 
                 await sleep(0.35)
-                translated_text = await self.translator.translate(
-                    message.content, target_lang
-                )
+                translated_text = await self.translator.translate(message.content, target_lang)
 
                 if isinstance(translated_text, list) and translated_text:
                     translated_text = translated_text[0]
@@ -213,7 +208,6 @@ class Bot(commands.Bot):
                     formatted_message = f"{translated_text} [by {message.author.display_name}] ({lang_code} > {target_lang})"
                     print(f"{DEBUG_PREFIX}Message sent: {formatted_message}")
                     await self.bot_connected_channel.send(f"/me {formatted_message}")
-
                 else:
                     print(f"{DEBUG_PREFIX}Could not translate the message.")
             else:
