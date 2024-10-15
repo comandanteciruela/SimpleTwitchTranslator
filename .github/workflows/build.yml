@@ -1,67 +1,45 @@
-name: Build Executable
+name: Build and Test
 
 on:
   push:
     branches:
-      - ssl-test  # Solo compilar en el branch ssl-test
+      - ssl-test
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install pyinstaller certifi
-
-    - name: Build Executable
-      run: |
-        $certifi_path = python -c "import certifi; print(certifi.where())"
-        pyinstaller --onefile --windowed --add-data "$certifi_path;certifi/cacert.pem" --add-data "config.py;." bot.py
-        mkdir output
-        Move-Item -Path "dist\bot.exe" -Destination "output\bot.exe"
-
-    - name: Upload Windows Executable
-      uses: actions/upload-artifact@v4
-      with:
-        name: bot-executable-windows
-        path: output/bot.exe
-
   build-linux:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'  # O la versión que necesites
 
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install pyinstaller certifi
+      - name: Build Linux binary
+        run: |
+          pyinstaller --onefile --exclude-module config bot.py
 
-    - name: Build Executable
-      run: |
-        certifi_path=$(python -c "import certifi; print(certifi.where())")
-        pyinstaller --onefile --add-data "$certifi_path:certifi/cacert.pem" --add-data "config.py:." bot.py
-        mkdir output
-        mv dist/bot output/bot
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Upload Linux Executable
-      uses: actions/upload-artifact@v4
-      with:
-        name: bot-executable-linux
-        path: output/bot
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'  # O la versión que necesites
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Build Windows binary
+        run: |
+          pyinstaller --onefile --exclude-module config bot.py
