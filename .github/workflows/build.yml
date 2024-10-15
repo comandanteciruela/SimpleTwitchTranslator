@@ -26,4 +26,16 @@ jobs:
 
       - name: Build the application
         run: |
-          pyinstaller --onefile --exclude-module config.py bot.py
+          pyinstaller --onefile --exclude-module config.py --name stt bot.py
+
+      - name: Copy config.py
+        run: |
+          cp config.py .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: my-python-app
+          path: |
+            stt
+            config.py
