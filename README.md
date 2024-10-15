@@ -2,7 +2,7 @@
 
 It is a simple bot that makes use of Google Translate without the need for an API key.
 
-It is very similar to [sayonari](https://github.com/sayonari)'s [twitchTransFreeNext](https://github.com/sayonari/twitchTransFreeNext) but simpler.
+It is very similar to [sayonari](https://github.com/sayonari)'s [twitchTransFreeNext](https://github.com/sayonari/twitchTransFreeNext) but simpler and a lot better.
 
 Written in Python, it primarily makes use of these two libraries: [TwitchIO](https://twitchio.dev/en/stable/) and [async-google-trans-new](https://pypi.org/project/async-google-trans-new/), as well as some other libraries.
 
