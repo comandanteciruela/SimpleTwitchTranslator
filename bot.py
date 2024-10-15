@@ -3,8 +3,8 @@ from aiohttp import ClientSession
 from twitchio.ext import commands
 from async_google_trans_new import AsyncTranslator
 from random import choice
-from sys import exit, executable, version_info
-from os.path import dirname, join, exists, abspath
+from sys import exit
+from os.path import join, exists, abspath
 from importlib.util import spec_from_file_location, module_from_spec
 
 DEBUG_PREFIX = "\033[1;33mDEBUG:\033[0m "
@@ -17,7 +17,7 @@ current_dir = abspath(".")
 config_path = join(current_dir, 'config.py')
 
 if not exists(config_path):
-    print(f"{DEBUG_PREFIX}Error: config.py no se encuentra en {current_dir}.")
+    print(f"{DEBUG_PREFIX}Error: config.py is not in {current_dir}.")
     exit(1)
 
 try:
