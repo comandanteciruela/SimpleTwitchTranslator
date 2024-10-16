@@ -10,7 +10,8 @@ from importlib.util import spec_from_file_location, module_from_spec
 DEBUG_BOLD_ORANGE = "\033[1;33mDEBUG:\033[0m "
 ERROR_BOLD_RED = "\033[1;31mERROR!\033[0m "
 OK_BOLD_GREEN = "\033[1;32mOK!\033[0m "
-DARK_GRAY = "\033[1;30m"
+LIGHT_GRAY = "\033[0;37m"
+
 
 
 def is_valid(token):
@@ -174,11 +175,11 @@ class Bot(commands.Bot):
                             return False, None
                     else:
                         print(
-                            f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Connection error: {response.status}"
+                            f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Connection response: {response.status}"
                         )
                         return False, None
         except Exception as e:
-            print(f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Connection error: {e}")
+            print(f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Connection broken. Error: {e}")
             return False, None
 
     async def event_message(self, message):
@@ -194,7 +195,7 @@ class Bot(commands.Bot):
             if message.author.display_name.lower() in [
                 user.lower() for user in IGNORE_USERS
             ]:
-                print(f"{DEBUG_BOLD_ORANGE}{DARK_GRAY} is ignored. Not translating.")
+                print(f"{DEBUG_BOLD_ORANGE}{LIGHT_GRAY} is ignored. Not translating.")
                 return
 
         if any(word.lower() in message.content.lower() for word in IGNORE_TEXT):
@@ -230,7 +231,7 @@ class Bot(commands.Bot):
 
                 else:
                     if detected_lang == CHANNEL_NATIVE_LANG:
-                        print(f"{DEBUG_BOLD_ORANGE}{DARK_GRAY}Not translating.")
+                        print(f"{DEBUG_BOLD_ORANGE}{LIGHT_GRAY}Not translating.")
                         return
                     elif detected_lang == TRANSLATE_TO_LANG:
                         target_lang = CHANNEL_NATIVE_LANG
@@ -263,7 +264,7 @@ class Bot(commands.Bot):
                 )
         except Exception as e:
             print(
-                f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Error processing the message: {e}"
+                f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Could not process de message: {e}"
             )
 
 
