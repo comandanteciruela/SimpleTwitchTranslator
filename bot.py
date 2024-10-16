@@ -210,6 +210,7 @@ class Bot(commands.Bot):
         try:
             await sleep(0.35)
             detected_lang = await self.translator.detect(message.content)
+            await sleep(0.35)
 
             if isinstance(detected_lang, list) and len(detected_lang) == 2:
                 detected_lang = detected_lang[0].lower()
@@ -229,7 +230,6 @@ class Bot(commands.Bot):
                     else:
                         target_lang = CHANNEL_NATIVE_LANG
 
-                await sleep(0.35)
                 translated_text = await self.translator.translate(
                     message.content, target_lang
                 )
@@ -241,7 +241,6 @@ class Bot(commands.Bot):
                     formatted_message = f"{translated_text} [by {message.author.display_name}] ({detected_lang} > {target_lang})"
                     print(f"✅ Message sent: {formatted_message}")
                     await self.bot_connected_channel.send(f"/me {formatted_message}")
-                    await sleep(0.35)
 
                 else:
                     print(
