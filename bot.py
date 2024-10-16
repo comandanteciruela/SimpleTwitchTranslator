@@ -10,6 +10,7 @@ from importlib.util import spec_from_file_location, module_from_spec
 DEBUG_BOLD_ORANGE = "\033[1;33mDEBUG:\033[0m "
 ERROR_BOLD_RED = "\033[1;31mERROR!\033[0m "
 OK_BOLD_GREEN = "\033[1;32mOK!\033[0m "
+DARK_GRAY = "\033[1;30m"
 
 
 def is_valid(token):
@@ -193,7 +194,7 @@ class Bot(commands.Bot):
             if message.author.display_name.lower() in [
                 user.lower() for user in IGNORE_USERS
             ]:
-                print(f"{DEBUG_BOLD_ORANGE}User is ignored. Not translating.")
+                print(f"{DEBUG_BOLD_ORANGE}{DARK_GRAY} is ignored. Not translating.")
                 return
 
         if any(word.lower() in message.content.lower() for word in IGNORE_TEXT):
@@ -229,7 +230,7 @@ class Bot(commands.Bot):
 
                 else:
                     if detected_lang == CHANNEL_NATIVE_LANG:
-                        print(f"{DEBUG_BOLD_ORANGE}Not translating.")
+                        print(f"{DEBUG_BOLD_ORANGE}{DARK_GRAY}Not translating.")
                         return
                     elif detected_lang == TRANSLATE_TO_LANG:
                         target_lang = CHANNEL_NATIVE_LANG
