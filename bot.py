@@ -200,9 +200,10 @@ class Bot(commands.Bot):
 
                 else:
                     if lang_code == CHANNEL_NATIVE_LANG:
+                        print(f"{DEBUG_PREFIX}Translation is not performed since the message is in the channel's native language.")
                         return
                     elif lang_code == TRANSLATE_TO_LANG:
-                        target_lang = CHANNEL_NATIVE_LANG 
+                        target_lang = CHANNEL_NATIVE_LANG
                     else:
                         target_lang = TRANSLATE_TO_LANG
 
