@@ -30,21 +30,26 @@ try:
     CHANNEL_NATIVE_LANG = config.CHANNEL_NATIVE_LANG
     TRANSLATE_TO_LANG = config.TRANSLATE_TO_LANG
 
+
 except Exception as e:
     print(f"{DEBUG_PREFIX}Error: Couldn't load config.py correctly: {e}")
     exit(1)
 
-for var, name in zip([BOT_OAUTH_TOKEN, BOT_CLIENT_ID], ["BOT_OAUTH_TOKEN", "BOT_CLIENT_ID"]):
-    if not is_valid(var):
-        print(f"{DEBUG_PREFIX}Error: {name} must be a string with more than 18 alphanumeric characters.")
+    for var, name in zip([BOT_OAUTH_TOKEN, BOT_CLIENT_ID], ["BOT_OAUTH_TOKEN", "BOT_CLIENT_ID"]):
+        if not is_valid(var):
+            print(f"{DEBUG_PREFIX}Error: {name} must be a string with more than 18 alphanumeric characters.")
+            exit(1)
+
+    if not (isinstance(CHANNEL_NATIVE_LANG, str) and len(CHANNEL_NATIVE_LANG) == 2):
+        print(f"{DEBUG_PREFIX}Error: CHANNEL_NATIVE_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
         exit(1)
 
-if not (isinstance(CHANNEL_NATIVE_LANG, str) and len(CHANNEL_NATIVE_LANG) == 2):
-    print(f"{DEBUG_PREFIX}Error: CHANNEL_NATIVE_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
-    exit(1)
+    if not (isinstance(TRANSLATE_TO_LANG, str) and len(TRANSLATE_TO_LANG) == 2):
+        print(f"{DEBUG_PREFIX}Error: TRANSLATE_TO_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
+        exit(1)
 
-if not (isinstance(TRANSLATE_TO_LANG, str) and len(TRANSLATE_TO_LANG) == 2):
-    print(f"{DEBUG_PREFIX}Error: TRANSLATE_TO_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru")
+except Exception as e:
+    print(f"{DEBUG_PREFIX}Error: Couldn't load config.py correctly: {e}")
     exit(1)
 
 DEFAULT_RANDOM_MESSAGES_INTERVAL = 2400
@@ -73,6 +78,8 @@ try:
     IGNORE_TEXT = config.IGNORE_TEXT
 except AttributeError:
     IGNORE_TEXT = []
+
+
 
 class Bot(commands.Bot):
 
@@ -185,20 +192,19 @@ class Bot(commands.Bot):
 
                 if is_owner:
                     if lang_code == TRANSLATE_TO_LANG:
-                        target_lang = CHANNEL_NATIVE_LANG  # Traduce al idioma nativo
+                        target_lang = CHANNEL_NATIVE_LANG
                     elif lang_code == CHANNEL_NATIVE_LANG:
-                        target_lang = TRANSLATE_TO_LANG  # Traduce al idioma de destino
+                        target_lang = TRANSLATE_TO_LANG
                     else:
-                        target_lang = TRANSLATE_TO_LANG  # Traduce cualquier otro idioma al de destino
+                        target_lang = TRANSLATE_TO_LANG
 
                 else:
-                    # Usuario normal
                     if lang_code == CHANNEL_NATIVE_LANG:
-                        return  # No se traduce
+                        return
                     elif lang_code == TRANSLATE_TO_LANG:
-                        target_lang = CHANNEL_NATIVE_LANG  # Traduce al idioma nativo
+                        target_lang = CHANNEL_NATIVE_LANG 
                     else:
-                        target_lang = TRANSLATE_TO_LANG  # Traduce a idioma de destino
+                        target_lang = TRANSLATE_TO_LANG
 
                 await sleep(0.35)
                 translated_text = await self.translator.translate(
