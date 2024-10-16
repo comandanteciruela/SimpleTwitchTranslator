@@ -10,7 +10,7 @@ from importlib.util import spec_from_file_location, module_from_spec
 ERROR_BOLD_RED = "\033[1;31mERROR!\033[0m "
 OK_BOLD_GREEN = "\033[1;32mOK!\033[0m "
 LIGHT_GRAY = "\033[0;37m"
-
+RESET = "\033[0m"
 
 
 def is_valid(token):
@@ -162,7 +162,7 @@ class Bot(commands.Bot):
                 ) as response:
                     if response.status == 200:
                         print(
-                            f"{OK_BOLD_GREEN}Successful connection."
+                            f"Successful connection. {OK_BOLD_GREEN}"
                         )
                         data = await response.json()
                         if data.get("data"):
@@ -194,7 +194,7 @@ class Bot(commands.Bot):
             if message.author.display_name.lower() in [
                 user.lower() for user in IGNORE_USERS
             ]:
-                print(f"{LIGHT_GRAY} is ignored. Not translating.")
+                print(f"{LIGHT_GRAY} is ignored. Not translating.{RESET}")
                 return
 
         if any(word.lower() in message.content.lower() for word in IGNORE_TEXT):
@@ -230,7 +230,7 @@ class Bot(commands.Bot):
 
                 else:
                     if detected_lang == CHANNEL_NATIVE_LANG:
-                        print(f"{LIGHT_GRAY}Not translating.")
+                        print(f"{LIGHT_GRAY}Not translating.{RESET}")
                         return
                     elif detected_lang == TRANSLATE_TO_LANG:
                         target_lang = CHANNEL_NATIVE_LANG
@@ -247,7 +247,7 @@ class Bot(commands.Bot):
 
                 if translated_text:
                     print(
-                        f"{OK_BOLD_GREEN}Message sent: {formatted_message}"
+                        f"Message sent: {formatted_message}"
                     )
                     await sleep(0.35)
                     formatted_message = f"{translated_text} [by {message.author.display_name}] ({detected_lang} > {target_lang})"
