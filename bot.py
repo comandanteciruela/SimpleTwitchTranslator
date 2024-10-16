@@ -7,7 +7,6 @@ from sys import exit
 from os.path import join, exists, abspath
 from importlib.util import spec_from_file_location, module_from_spec
 
-DEBUG_BOLD_ORANGE = "\033[1;33mDEBUG:\033[0m "
 ERROR_BOLD_RED = "\033[1;31mERROR!\033[0m "
 OK_BOLD_GREEN = "\033[1;32mOK!\033[0m "
 LIGHT_GRAY = "\033[0;37m"
@@ -23,7 +22,7 @@ current_dir = abspath(".")
 config_path = join(current_dir, "config.py")
 
 if not exists(config_path):
-    print(f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}config.py is not in {current_dir}.")
+    print(f"{ERROR_BOLD_RED}config.py is not in {current_dir}.")
     exit(1)
 
 try:
@@ -38,7 +37,7 @@ try:
 
 
 except Exception as e:
-    print(f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Couldn't load config.py correctly: {e}")
+    print(f"{ERROR_BOLD_RED}Couldn't load config.py correctly: {e}")
     exit(1)
 
     for var, name in zip(
@@ -46,24 +45,24 @@ except Exception as e:
     ):
         if not is_valid(var):
             print(
-                f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}{name} must be a string with more than 18 alphanumeric characters."
+                f"{ERROR_BOLD_RED}{name} must be a string with more than 18 alphanumeric characters."
             )
             exit(1)
 
     if not (isinstance(CHANNEL_NATIVE_LANG, str) and len(CHANNEL_NATIVE_LANG) == 2):
         print(
-            f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}CHANNEL_NATIVE_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru"
+            f"{ERROR_BOLD_RED}CHANNEL_NATIVE_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru"
         )
         exit(1)
 
     if not (isinstance(TRANSLATE_TO_LANG, str) and len(TRANSLATE_TO_LANG) == 2):
         print(
-            f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}TRANSLATE_TO_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru"
+            f"{ERROR_BOLD_RED}TRANSLATE_TO_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru"
         )
         exit(1)
 
 except Exception as e:
-    print(f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Couldn't load config.py correctly: {e}")
+    print(f"{ERROR_BOLD_RED}Couldn't load config.py correctly: {e}")
     exit(1)
 
 DEFAULT_RANDOM_MESSAGES_INTERVAL = 2400
@@ -110,17 +109,17 @@ class Bot(commands.Bot):
             is_connected, bot_data = await self.check_connection()
             if is_connected:
                 break
-            print(f"{DEBUG_BOLD_ORANGE}Retrying connection...")
+            print(f"Retrying connection...")
             await sleep(1)
 
         self.websocket_ready = True
         self.bot_id = bot_data["id"]
         self.bot_display_name = bot_data["display_name"]
         self.bot_connected_channel = self.get_channel(CHANNEL_NAME)
-        print(f"{DEBUG_BOLD_ORANGE}Bot data connection info: {bot_data}")
-        print(f"{DEBUG_BOLD_ORANGE}{self.bot_connected_channel}")
-        print(f"{DEBUG_BOLD_ORANGE}Account name: {self.bot_display_name}")
-        print(f"{DEBUG_BOLD_ORANGE}Bot ID: {self.bot_id}")
+        print(f"Bot data connection info: {bot_data}")
+        print(f"{self.bot_connected_channel}")
+        print(f"Account name: {self.bot_display_name}")
+        print(f"Bot ID: {self.bot_id}")
 
         if isinstance(BOT_INTRO_MESSAGES, list) and BOT_INTRO_MESSAGES:
             intro_message = choice(BOT_INTRO_MESSAGES)
@@ -134,7 +133,7 @@ class Bot(commands.Bot):
 
         if not (isinstance(interval, (int, float)) and interval > 0):
             print(
-                f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Invalid RANDOM_MESSAGES_INTERVAL; defaulting to {DEFAULT_RANDOM_MESSAGES_INTERVAL} seconds."
+                f"{ERROR_BOLD_RED}Invalid RANDOM_MESSAGES_INTERVAL; defaulting to {DEFAULT_RANDOM_MESSAGES_INTERVAL} seconds."
             )
             interval = DEFAULT_RANDOM_MESSAGES_INTERVAL
 
@@ -148,10 +147,10 @@ class Bot(commands.Bot):
                 message = choice(RANDOM_MESSAGES)
                 await self.bot_connected_channel.send(message)
                 await sleep(1)
-                print(f"\n{DEBUG_BOLD_ORANGE}Sent random message: {message}")
+                print(f"\nSent random message: {message}")
 
     async def check_connection(self):
-        print(f"{DEBUG_BOLD_ORANGE}Trying to connect...")
+        print(f"Trying to connect...")
         try:
             async with ClientSession() as session:
                 async with session.get(
@@ -163,23 +162,23 @@ class Bot(commands.Bot):
                 ) as response:
                     if response.status == 200:
                         print(
-                            f"{DEBUG_BOLD_ORANGE}{OK_BOLD_GREEN}Successful connection."
+                            f"{OK_BOLD_GREEN}Successful connection."
                         )
                         data = await response.json()
                         if data.get("data"):
                             return True, data["data"][0]
                         else:
                             print(
-                                f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}No user data found."
+                                f"{ERROR_BOLD_RED}No user data found."
                             )
                             return False, None
                     else:
                         print(
-                            f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Connection response: {response.status}"
+                            f"{ERROR_BOLD_RED}Connection response: {response.status}"
                         )
                         return False, None
         except Exception as e:
-            print(f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Connection broken. Error: {e}")
+            print(f"{ERROR_BOLD_RED}Connection broken. Error: {e}")
             return False, None
 
     async def event_message(self, message):
@@ -195,14 +194,14 @@ class Bot(commands.Bot):
             if message.author.display_name.lower() in [
                 user.lower() for user in IGNORE_USERS
             ]:
-                print(f"{DEBUG_BOLD_ORANGE}{LIGHT_GRAY} is ignored. Not translating.")
+                print(f"{LIGHT_GRAY} is ignored. Not translating.")
                 return
 
         if any(word.lower() in message.content.lower() for word in IGNORE_TEXT):
             return
 
         print(
-            f"\n{DEBUG_BOLD_ORANGE}Message received from {message.author.display_name}: {message.content}"
+            f"\nMessage received from {message.author.display_name}: {message.content}"
         )
 
         await self.handle_commands(message)
@@ -231,7 +230,7 @@ class Bot(commands.Bot):
 
                 else:
                     if detected_lang == CHANNEL_NATIVE_LANG:
-                        print(f"{DEBUG_BOLD_ORANGE}{LIGHT_GRAY}Not translating.")
+                        print(f"{LIGHT_GRAY}Not translating.")
                         return
                     elif detected_lang == TRANSLATE_TO_LANG:
                         target_lang = CHANNEL_NATIVE_LANG
@@ -248,7 +247,7 @@ class Bot(commands.Bot):
 
                 if translated_text:
                     print(
-                        f"{DEBUG_BOLD_ORANGE}{OK_BOLD_GREEN}Message sent: {formatted_message}"
+                        f"{OK_BOLD_GREEN}Message sent: {formatted_message}"
                     )
                     await sleep(0.35)
                     formatted_message = f"{translated_text} [by {message.author.display_name}] ({detected_lang} > {target_lang})"
@@ -256,15 +255,15 @@ class Bot(commands.Bot):
 
                 else:
                     print(
-                        f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Could not translate the message."
+                        f"{ERROR_BOLD_RED}Could not translate the message."
                     )
             else:
                 print(
-                    f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Detection response is not valid."
+                    f"{ERROR_BOLD_RED}Detection response is not valid."
                 )
         except Exception as e:
             print(
-                f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Could not process the message: {e}"
+                f"{ERROR_BOLD_RED}Could not process the message: {e}"
             )
 
 
