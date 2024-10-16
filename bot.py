@@ -187,22 +187,22 @@ class Bot(commands.Bot):
             detected_lang = await self.translator.detect(message.content)
 
             if isinstance(detected_lang, list) and len(detected_lang) == 2:
-                lang_code = detected_lang[0].lower()
+                detected_lang = detected_lang[0].lower()
                 is_owner = message.author.display_name.lower() == CHANNEL_NAME.lower()
 
                 if is_owner:
-                    if lang_code == TRANSLATE_TO_LANG:
+                    if detected_lang == TRANSLATE_TO_LANG:
                         target_lang = CHANNEL_NATIVE_LANG
-                    elif lang_code == CHANNEL_NATIVE_LANG:
+                    elif detected_lang == CHANNEL_NATIVE_LANG:
                         target_lang = TRANSLATE_TO_LANG
                     else:
                         target_lang = TRANSLATE_TO_LANG
 
                 else:
-                    if lang_code == CHANNEL_NATIVE_LANG:
-                        print(f"{DEBUG_PREFIX}Translation is not performed since the message is in the channel's native language.")
+                    if detected_lang == CHANNEL_NATIVE_LANG:
+                        print(f"{DEBUG_PREFIX}❌ Translation is not performed since the message is in the channel's native language.")
                         return
-                    elif lang_code == TRANSLATE_TO_LANG:
+                    elif detected_lang == TRANSLATE_TO_LANG:
                         target_lang = CHANNEL_NATIVE_LANG
                     else:
                         target_lang = TRANSLATE_TO_LANG
@@ -216,9 +216,9 @@ class Bot(commands.Bot):
                     translated_text = translated_text[0]
 
                 if translated_text:
+                    print(f"{DEBUG_PREFIX}✅ Message sent: {formatted_message}")
                     await sleep(0.35)
-                    formatted_message = f"{translated_text} [by {message.author.display_name}] ({lang_code} > {target_lang})"
-                    print(f"{DEBUG_PREFIX}Message sent: {formatted_message}")
+                    formatted_message = f"{translated_text} [by {message.author.display_name}] ({detected_lang} > {target_lang})"
                     await self.bot_connected_channel.send(f"/me {formatted_message}")
 
                 else:
