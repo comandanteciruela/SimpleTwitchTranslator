@@ -264,7 +264,7 @@ class Bot(commands.Bot):
                 )
         except Exception as e:
             print(
-                f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Could not process de message: {e}"
+                f"{DEBUG_BOLD_ORANGE}{ERROR_BOLD_RED}Could not process the message: {e}"
             )
 
 
