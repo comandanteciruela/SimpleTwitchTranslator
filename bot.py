@@ -215,7 +215,7 @@ class Bot(commands.Bot):
                 detected_lang = detected_lang[0].lower()
                 is_owner = message.author.display_name.lower() == CHANNEL_NAME.lower()
 
-                print(f"\n{message.author.display_name} (detected lang: {detected_lang}) {message.content}")
+                print(f"\n{message.author.display_name} ({detected_lang}): {message.content}")
 
                 if is_owner:
                     if detected_lang == TRANSLATE_TO_LANG:
@@ -243,12 +243,10 @@ class Bot(commands.Bot):
                     translated_text = translated_text[0]
 
                 if translated_text:
-                    print(
-                        f"Message sent: {formatted_message}"
-                    )
-                    await sleep(0.35)
                     formatted_message = f"{translated_text} [by {message.author.display_name}] ({detected_lang} > {target_lang})"
+                    print(f"Message sent: {formatted_message}")
                     await self.bot_connected_channel.send(f"/me {formatted_message}")
+                    await sleep(0.35)
 
                 else:
                     print(
