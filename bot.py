@@ -116,10 +116,9 @@ class Bot(commands.Bot):
         self.bot_id = bot_data["id"]
         self.bot_display_name = bot_data["display_name"]
         self.bot_connected_channel = self.get_channel(CHANNEL_NAME)
-        print(f"Bot data connection info: {bot_data}")
+        print(f"\n<Bot name: {self.bot_display_name}>")
         print(f"{self.bot_connected_channel}")
-        print(f"Account name: {self.bot_display_name}")
-        print(f"Bot ID: {self.bot_id}")
+
 
         if isinstance(BOT_INTRO_MESSAGES, list) and BOT_INTRO_MESSAGES:
             intro_message = choice(BOT_INTRO_MESSAGES)
@@ -200,10 +199,6 @@ class Bot(commands.Bot):
         if any(word.lower() in message.content.lower() for word in IGNORE_TEXT):
             return
 
-        print(
-            f"\n{message.author.display_name}: {message.content}"
-        )
-
         await self.handle_commands(message)
 
         if message.content.startswith("!"):
@@ -219,6 +214,8 @@ class Bot(commands.Bot):
             if isinstance(detected_lang, list) and len(detected_lang) == 2:
                 detected_lang = detected_lang[0].lower()
                 is_owner = message.author.display_name.lower() == CHANNEL_NAME.lower()
+
+                print(f"\n{message.author.display_name} (detected lang: {detected_lang}) {message.content}")
 
                 if is_owner:
                     if detected_lang == TRANSLATE_TO_LANG:
