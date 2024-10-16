@@ -201,7 +201,7 @@ class Bot(commands.Bot):
             return
 
         print(
-            f"\nMessage received from {message.author.display_name}: {message.content}"
+            f"\n{message.author.display_name}: {message.content}"
         )
 
         await self.handle_commands(message)
