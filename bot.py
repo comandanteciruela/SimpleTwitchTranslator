@@ -68,26 +68,54 @@ except Exception as e:
 DEFAULT_RANDOM_MESSAGES_INTERVAL = 2400
 
 try:
-    BOT_INTRO_MESSAGES = config.BOT_INTRO_MESSAGES
+    if not isinstance(config.BOT_INTRO_MESSAGES, list):
+        print(f"{ERROR_BOLD_RED}BOT_INTRO_MESSAGES must be a list.")
+        BOT_INTRO_MESSAGES = []
+    else:
+        BOT_INTRO_MESSAGES = config.BOT_INTRO_MESSAGES
 except AttributeError:
     BOT_INTRO_MESSAGES = []
 
 try:
-    RANDOM_MESSAGES = config.RANDOM_MESSAGES
+    if not isinstance(config.RANDOM_MESSAGES, list):
+        print(f"{ERROR_BOLD_RED}RANDOM_MESSAGES must be a list.")
+        RANDOM_MESSAGES = []
+    else:
+        RANDOM_MESSAGES = config.RANDOM_MESSAGES
 except AttributeError:
     RANDOM_MESSAGES = []
 
 try:
-    IGNORE_USERS = config.IGNORE_USERS
+    if not isinstance(config.IGNORE_USERS, list):
+        print(f"{ERROR_BOLD_RED}IGNORE_USERS must be a list.")
+        IGNORE_USERS = []
+    else:
+        IGNORE_USERS = config.IGNORE_USERS
 except AttributeError:
     IGNORE_USERS = []
 
 try:
-    RANDOM_MESSAGES_INTERVAL = config.RANDOM_MESSAGES_INTERVAL
+    if not isinstance(config.MESSAGES, list):
+        print(f"{ERROR_BOLD_RED}MESSAGES must be a list.")
+        MESSAGES = []
+    else:
+        MESSAGES = config.MESSAGES
+except AttributeError:
+    MESSAGES = []
+
+try:
+    if not isinstance(config.RANDOM_MESSAGES_INTERVAL, int) or config.RANDOM_MESSAGES_INTERVAL <= 0:
+        print(f"{ERROR_BOLD_RED}Invalid RANDOM_MESSAGES_INTERVAL. RANDOM_MESSAGES_INTERVAL must be a positive integer. Defaulting to {DEFAULT_RANDOM_MESSAGES_INTERVAL} seconds.")
+        RANDOM_MESSAGES_INTERVAL = DEFAULT_RANDOM_MESSAGES_INTERVAL
+    else:
+        RANDOM_MESSAGES_INTERVAL = config.RANDOM_MESSAGES_INTERVAL
 except AttributeError:
     RANDOM_MESSAGES_INTERVAL = DEFAULT_RANDOM_MESSAGES_INTERVAL
 
 try:
+    if not isinstance(config.IGNORE_TEXT, list):
+        print(f"{ERROR_BOLD_RED}IGNORE_TEXT must be a list.")
+        IGNORE_TEXT = []
     IGNORE_TEXT = config.IGNORE_TEXT
 except AttributeError:
     IGNORE_TEXT = []
@@ -103,6 +131,11 @@ class Bot(commands.Bot):
         self.websocket_ready = False
         self.bot_id = None
         self.bot_login = None
+
+    @commands.command(name='bot')
+    async def instagram(self, ctx):
+        await ctx.send(f"¡Hola, {ctx.author.display_name}! Este es mi Instagram: [tu enlace aquí]")
+
 
     async def event_ready(self):
         while True:
@@ -129,13 +162,6 @@ class Bot(commands.Bot):
 
     async def send_random_messages(self):
         interval = RANDOM_MESSAGES_INTERVAL
-
-        if not (isinstance(interval, (int, float)) and interval > 0):
-            print(
-                f"{ERROR_BOLD_RED}Invalid RANDOM_MESSAGES_INTERVAL; defaulting to {DEFAULT_RANDOM_MESSAGES_INTERVAL} seconds."
-            )
-            interval = DEFAULT_RANDOM_MESSAGES_INTERVAL
-
         while True:
             await sleep(interval)
             if (
@@ -200,10 +226,6 @@ class Bot(commands.Bot):
             return
 
         await self.handle_commands(message)
-
-        if message.content.startswith("!"):
-            return
-
         await self.handle_translation(message)
 
     async def handle_translation(self, message):
