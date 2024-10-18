@@ -17,6 +17,23 @@ RESET = "\033[0m"
 def is_valid(token):
     return isinstance(token, str) and len(token) > 18 and token.isalnum()
 
+def contains_repetitions(msg):
+    words = msg.split()
+    count = {}
+    unique_words = set()
+
+    for word in words:
+        if word in count:
+            count[word] += 1
+        else:
+            count[word] = 1
+            unique_words.add(word)
+
+    has_repetition = any(c >= 2 for c in count.values())
+    has_unique_word = len(unique_words) > 1
+
+    return has_repetition, has_unique_word
+
 
 current_dir = abspath(".")
 
@@ -301,19 +318,28 @@ class Bot(commands.Bot):
         else:
             print(f"{ERROR_BOLD_RED}Something happened: {str(error)}")
 
+
+
+
     async def handle_translation(self, message):
         if message.content.startswith("!"):
             return
+
+        has_repetition, has_unique_word = contains_repetitions(message.content)
+
+        print(f"\n{message.author.display_name}: {message.content}")
+
+        if has_repetition and not has_unique_word:
+            print(f"{LIGHT_GRAY}Not translating.{RESET}")
+            return
+
         try:
             detected_lang = await self.translator.detect(message.content)
+
 
             if isinstance(detected_lang, list) and len(detected_lang) == 2:
                 detected_lang = detected_lang[0].lower()
                 is_owner = message.author.display_name.lower() == CHANNEL_NAME.lower()
-
-                print(
-                    f"\n{message.author.display_name} ({detected_lang}): {message.content}"
-                )
 
                 if is_owner:
                     if detected_lang == CHANNEL_NATIVE_LANG:
