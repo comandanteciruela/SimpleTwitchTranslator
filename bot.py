@@ -280,6 +280,7 @@ class Bot(commands.Bot):
                         "Authorization": f"Bearer {BOT_OAUTH_TOKEN}",
                         "Client-Id": BOT_CLIENT_ID,
                     },
+                    ssl=certifi.where()
                 ) as response:
                     if response.status == 200:
                         print(f"Successful connection. {OK_BOLD_GREEN}")
