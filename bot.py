@@ -1,4 +1,4 @@
-import certifi
+from certifi import where
 from asyncio import run, sleep, create_task
 from aiohttp import ClientSession
 from twitchio.ext import commands
@@ -280,7 +280,7 @@ class Bot(commands.Bot):
                         "Authorization": f"Bearer {BOT_OAUTH_TOKEN}",
                         "Client-Id": BOT_CLIENT_ID,
                     },
-                    ssl=certifi.where()
+                    ssl=where()
                 ) as response:
                     if response.status == 200:
                         print(f"Successful connection. {OK_BOLD_GREEN}")
