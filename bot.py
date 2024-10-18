@@ -104,6 +104,15 @@ try:
         RANDOM_MESSAGES = config.RANDOM_MESSAGES
 except AttributeError:
     RANDOM_MESSAGES = []
+    
+try:
+    if not isinstance(config.ORDERED_MESSAGES, list):
+        print(f"{ERROR_BOLD_RED}ORDERED_MESSAGES must be a list.")
+        ORDERED_MESSAGES = []
+    else:
+        ORDERED_MESSAGES = config.ORDERED_MESSAGES
+except AttributeError:
+    ORDERED_MESSAGES = []
 
 try:
     if not isinstance(config.IGNORE_USERS, list):
