@@ -210,7 +210,7 @@ class Bot(commands.Bot):
 
         self.create_commands()
 
-        if isinstance(BOT_INTRO_MESSAGES, list):
+        if BOT_INTRO_MESSAGES and isinstance(BOT_INTRO_MESSAGES, list):
             intro_message = choice(BOT_INTRO_MESSAGES)
             await self.bot_connected_channel.send(intro_message)
 
