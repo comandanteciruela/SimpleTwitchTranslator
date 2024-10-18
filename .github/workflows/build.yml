@@ -26,7 +26,7 @@ jobs:
 
       - name: Build the application
         run: |
-          pyinstaller --onefile --exclude-module config.py bot.py
+          pyinstaller --onefile --add-data "$(python -m certifi) --exclude-module config.py bot.py
 
       - name: Move binary and config
         run: |
