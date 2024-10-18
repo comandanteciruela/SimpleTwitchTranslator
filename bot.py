@@ -1,5 +1,4 @@
 from asyncio import run, sleep, create_task
-from aiohttp import ClientSession
 from twitchio.ext import commands
 from twitchio.ext.commands import Command
 from async_google_trans_new import AsyncTranslator
@@ -104,7 +103,7 @@ try:
         RANDOM_MESSAGES = config.RANDOM_MESSAGES
 except AttributeError:
     RANDOM_MESSAGES = []
-    
+
 try:
     if not isinstance(config.ORDERED_MESSAGES, list):
         print(f"{ERROR_BOLD_RED}ORDERED_MESSAGES must be a list.")
@@ -176,15 +175,8 @@ class Bot(commands.Bot):
             token=BOT_OAUTH_TOKEN, prefix="!", initial_channels=[CHANNEL_NAME]
         )
         self.translator = AsyncTranslator()
-        self.websocket_ready = False
-        self.bot_id = None
-        self.bot_login = None
-        self.commands_created = False
 
     def create_commands(self):
-
-        if self.commands_created:
-            return
 
         for key, message_template in MESSAGES.items():
 
@@ -208,30 +200,17 @@ class Bot(commands.Bot):
         commands_command_instance = Command(name="commands", func=help_command)
         self.add_command(commands_command_instance)
 
-        self.commands_created = True
-
     async def event_ready(self):
 
-        if self.commands_created:
-            return
-
-        while True:
-            is_connected, bot_data = await self.check_connection()
-            if is_connected:
-                break
-            print(f"Retrying connection...")
-            await sleep(1)
-
-        self.websocket_ready = True
-        self.bot_id = bot_data["id"]
-        self.bot_display_name = bot_data["display_name"]
         self.bot_connected_channel = self.get_channel(CHANNEL_NAME)
-        print(f"\n<Bot name: {self.bot_display_name}>")
-        print(f"{self.bot_connected_channel}\n")
+
+        print(f"Connected. {OK_BOLD_GREEN}")
+        print(f"Bot name: {self.nick}")
+        print(f"Channel name: {self.bot_connected_channel.name}")
 
         self.create_commands()
 
-        if isinstance(BOT_INTRO_MESSAGES, list) and BOT_INTRO_MESSAGES:
+        if isinstance(BOT_INTRO_MESSAGES, list):
             intro_message = choice(BOT_INTRO_MESSAGES)
             await self.bot_connected_channel.send(intro_message)
 
@@ -244,8 +223,7 @@ class Bot(commands.Bot):
         while True:
             await sleep(interval)
             if (
-                self.websocket_ready
-                and ORDERED_MESSAGES
+                ORDERED_MESSAGES
                 and isinstance(ORDERED_MESSAGES[index], str)
             ):
                 message = ORDERED_MESSAGES[index]
@@ -261,45 +239,16 @@ class Bot(commands.Bot):
         while True:
             await sleep(interval)
             if (
-                self.websocket_ready
-                and RANDOM_MESSAGES
+                RANDOM_MESSAGES
                 and any(isinstance(msg, str) for msg in RANDOM_MESSAGES)
             ):
                 message = choice(RANDOM_MESSAGES)
                 await self.bot_connected_channel.send(message)
                 print(f"\n⭐ Sent random message: {message}")
 
-    async def check_connection(self):
-        print(f"Trying to connect...")
-        try:
-            async with ClientSession() as session:
-                async with session.get(
-                    "https://api.twitch.tv/helix/users",
-                    headers={
-                        "Authorization": f"Bearer {BOT_OAUTH_TOKEN}",
-                        "Client-Id": BOT_CLIENT_ID,
-                    },
-                ) as response:
-                    if response.status == 200:
-                        print(f"Successful connection. {OK_BOLD_GREEN}")
-                        data = await response.json()
-                        if data.get("data"):
-                            return True, data["data"][0]
-                        else:
-                            print(f"{ERROR_BOLD_RED}No user data found.")
-                            return False, None
-                    else:
-                        print(f"{ERROR_BOLD_RED}Connection response: {response.status}")
-                        return False, None
-        except Exception as e:
-            print(f"{ERROR_BOLD_RED}Connection broken. Error: {e}")
-            return False, None
-
     async def event_message(self, message):
-        if not self.websocket_ready:
-            return
 
-        if message.author is None or message.author.id == self.bot_id:
+        if message.author is None or message.author.id == self.nick:
             return
 
         if isinstance(IGNORE_USERS, list) and any(
