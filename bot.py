@@ -1,6 +1,8 @@
 from asyncio import run, sleep, create_task
 from aiohttp import ClientSession
 from twitchio.ext import commands
+from twitchio.ext.commands import Command
+from twitchio.ext.commands.errors import CommandNotFound
 from async_google_trans_new import AsyncTranslator
 from random import choice
 from sys import exit
@@ -95,17 +97,22 @@ except AttributeError:
     IGNORE_USERS = []
 
 try:
-    if not isinstance(config.MESSAGES, list):
-        print(f"{ERROR_BOLD_RED}MESSAGES must be a list.")
+    if not isinstance(config.MESSAGES, dict):
+        print(f"{ERROR_BOLD_RED}MESSAGES must be a dictionary.")
         MESSAGES = []
     else:
         MESSAGES = config.MESSAGES
 except AttributeError:
-    MESSAGES = []
+    MESSAGES = {}
 
 try:
-    if not isinstance(config.RANDOM_MESSAGES_INTERVAL, int) or config.RANDOM_MESSAGES_INTERVAL <= 0:
-        print(f"{ERROR_BOLD_RED}Invalid RANDOM_MESSAGES_INTERVAL. RANDOM_MESSAGES_INTERVAL must be a positive integer. Defaulting to {DEFAULT_RANDOM_MESSAGES_INTERVAL} seconds.")
+    if (
+        not isinstance(config.RANDOM_MESSAGES_INTERVAL, int)
+        or config.RANDOM_MESSAGES_INTERVAL <= 0
+    ):
+        print(
+            f"{ERROR_BOLD_RED}Invalid RANDOM_MESSAGES_INTERVAL. RANDOM_MESSAGES_INTERVAL must be a positive integer. Defaulting to {DEFAULT_RANDOM_MESSAGES_INTERVAL} seconds."
+        )
         RANDOM_MESSAGES_INTERVAL = DEFAULT_RANDOM_MESSAGES_INTERVAL
     else:
         RANDOM_MESSAGES_INTERVAL = config.RANDOM_MESSAGES_INTERVAL
@@ -131,13 +138,41 @@ class Bot(commands.Bot):
         self.websocket_ready = False
         self.bot_id = None
         self.bot_login = None
+        self.commands_created = False
 
-    @commands.command(name='bot')
-    async def instagram(self, ctx):
-        await ctx.send(f"¡Hola, {ctx.author.display_name}! Este es mi Instagram: [tu enlace aquí]")
+    def create_commands(self):
 
+        if self.commands_created:
+            return
+
+        for key, message_template in MESSAGES.items():
+
+            async def command(ctx, message_template=message_template):
+                message = message_template.format(usuario=ctx.author.display_name)
+                await ctx.send(message)
+
+            command.__name__ = key
+            command_instance = Command(name=key, func=command)
+            self.add_command(command_instance)
+
+        async def help_command(ctx):
+            command_list = ", ".join(f"!{command}" for command in MESSAGES.keys())
+            await ctx.send(f"Available commands: {command_list}")
+
+        help_command.__name__ = "help"
+        help_command_instance = Command(name="help", func=help_command)
+        self.add_command(help_command_instance)
+
+        commands_command_instance = Command(name="commands", func=help_command)
+        self.add_command(commands_command_instance)
+
+        self.commands_created = True
 
     async def event_ready(self):
+
+        if self.commands_created:
+            return
+
         while True:
             is_connected, bot_data = await self.check_connection()
             if is_connected:
@@ -150,8 +185,9 @@ class Bot(commands.Bot):
         self.bot_display_name = bot_data["display_name"]
         self.bot_connected_channel = self.get_channel(CHANNEL_NAME)
         print(f"\n<Bot name: {self.bot_display_name}>")
-        print(f"{self.bot_connected_channel}")
+        print(f"{self.bot_connected_channel}\n")
 
+        self.create_commands()
 
         if isinstance(BOT_INTRO_MESSAGES, list) and BOT_INTRO_MESSAGES:
             intro_message = choice(BOT_INTRO_MESSAGES)
@@ -186,21 +222,15 @@ class Bot(commands.Bot):
                     },
                 ) as response:
                     if response.status == 200:
-                        print(
-                            f"Successful connection. {OK_BOLD_GREEN}"
-                        )
+                        print(f"Successful connection. {OK_BOLD_GREEN}")
                         data = await response.json()
                         if data.get("data"):
                             return True, data["data"][0]
                         else:
-                            print(
-                                f"{ERROR_BOLD_RED}No user data found."
-                            )
+                            print(f"{ERROR_BOLD_RED}No user data found.")
                             return False, None
                     else:
-                        print(
-                            f"{ERROR_BOLD_RED}Connection response: {response.status}"
-                        )
+                        print(f"{ERROR_BOLD_RED}Connection response: {response.status}")
                         return False, None
         except Exception as e:
             print(f"{ERROR_BOLD_RED}Connection broken. Error: {e}")
@@ -228,7 +258,20 @@ class Bot(commands.Bot):
         await self.handle_commands(message)
         await self.handle_translation(message)
 
+    async def event_command_error(self, context: commands.Context, error: Exception):
+        if isinstance(error, commands.CommandNotFound):
+            print(
+                f"{ERROR_BOLD_RED}Command not found. Use !help to see a list of available commands."
+            )
+            await context.send(
+                "Command not found. Use !help to see a list of available commands."
+            )
+        else:
+            print(f"{ERROR_BOLD_RED}Something happened: {str(error)}")
+
     async def handle_translation(self, message):
+        if message.content.startswith("!"):
+            return
         try:
             await sleep(0.35)
             detected_lang = await self.translator.detect(message.content)
@@ -238,7 +281,9 @@ class Bot(commands.Bot):
                 detected_lang = detected_lang[0].lower()
                 is_owner = message.author.display_name.lower() == CHANNEL_NAME.lower()
 
-                print(f"\n{message.author.display_name} ({detected_lang}): {message.content}")
+                print(
+                    f"\n{message.author.display_name} ({detected_lang}): {message.content}"
+                )
 
                 if is_owner:
                     if detected_lang == CHANNEL_NATIVE_LANG:
@@ -265,17 +310,11 @@ class Bot(commands.Bot):
                     await self.bot_connected_channel.send(f"/me {formatted_message}")
 
                 else:
-                    print(
-                        f"{ERROR_BOLD_RED}Could not translate the message."
-                    )
+                    print(f"{ERROR_BOLD_RED}Could not translate the message.")
             else:
-                print(
-                    f"{ERROR_BOLD_RED}Detection response is not valid."
-                )
+                print(f"{ERROR_BOLD_RED}Detection response is not valid.")
         except Exception as e:
-            print(
-                f"{ERROR_BOLD_RED}Could not process the message: {e}"
-            )
+            print(f"{ERROR_BOLD_RED}Could not process the message: {e}")
 
 
 async def main():
