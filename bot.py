@@ -222,10 +222,7 @@ class Bot(commands.Bot):
         index = 0
         while True:
             await sleep(interval)
-            if (
-                ORDERED_MESSAGES
-                and isinstance(ORDERED_MESSAGES[index], str)
-            ):
+            if ORDERED_MESSAGES and isinstance(ORDERED_MESSAGES[index], str):
                 message = ORDERED_MESSAGES[index]
                 await self.bot_connected_channel.send(message)
                 print(f"\n⭐ Sent ordered message: {message}")
@@ -238,10 +235,7 @@ class Bot(commands.Bot):
         interval = RANDOM_MESSAGES_INTERVAL
         while True:
             await sleep(interval)
-            if (
-                RANDOM_MESSAGES
-                and any(isinstance(msg, str) for msg in RANDOM_MESSAGES)
-            ):
+            if RANDOM_MESSAGES and any(isinstance(msg, str) for msg in RANDOM_MESSAGES):
                 message = choice(RANDOM_MESSAGES)
                 await self.bot_connected_channel.send(message)
                 print(f"\n⭐ Sent random message: {message}")
@@ -281,10 +275,9 @@ class Bot(commands.Bot):
         if message.content.startswith("!"):
             return
 
-        has_repetition, has_unique_word = contains_repetitions(message.content)
-
         print(f"\n{message.author.display_name}: {message.content}")
 
+        has_repetition, has_unique_word = contains_repetitions(message.content)
         if has_repetition and not has_unique_word:
             print(f"{LIGHT_GRAY}Not translating.{RESET}")
             return
