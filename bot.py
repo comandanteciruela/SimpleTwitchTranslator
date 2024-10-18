@@ -7,6 +7,13 @@ from sys import exit
 from os.path import join, exists, abspath
 from importlib.util import spec_from_file_location, module_from_spec
 
+import ssl
+import certifi
+
+ssl_context = ssl.create_default_context(cafile=certifi.where())
+ssl_context.check_hostname = True
+ssl_context.verify_mode = ssl.CERT_REQUIRED
+
 ERROR_BOLD_RED = "\033[1;31mERROR!\033[0m "
 OK_BOLD_GREEN = "\033[1;32mOK!\033[0m "
 LIGHT_GRAY = "\033[0;37m"
@@ -172,7 +179,7 @@ class Bot(commands.Bot):
 
     def __init__(self):
         super().__init__(
-            token=BOT_OAUTH_TOKEN, prefix="!", initial_channels=[CHANNEL_NAME]
+            token=BOT_OAUTH_TOKEN, prefix="!", initial_channels=[CHANNEL_NAME], ssl_context=ssl_context
         )
         self.translator = AsyncTranslator()
 
