@@ -21,9 +21,14 @@ RANDOM_MESSAGES = [
     "Remember to follow the rules.",
     "Enjoy!",
 ]
+ORDERED_MESSAGES_INTERVAL = [
+    "Woop woop",
+    "Hey",
+]
 MESSAGES = {
     "hellobot": "Hello {user}",
     "discord": "My discord invite url is...",
 }
+ORDERED_MESSAGES_INTERVAL = 2400
 RANDOM_MESSAGES_INTERVAL = 2400
 IGNORE_USERS = ["johnson_robert_johnson", "robert_von_smith", "dr_alphonse_aubert"]
