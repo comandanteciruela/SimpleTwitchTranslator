@@ -17,6 +17,7 @@ RESET = "\033[0m"
 def is_valid(token):
     return isinstance(token, str) and len(token) > 18 and token.isalnum()
 
+
 def contains_repetitions(msg):
     words = msg.split()
     count = {}
@@ -318,9 +319,6 @@ class Bot(commands.Bot):
         else:
             print(f"{ERROR_BOLD_RED}Something happened: {str(error)}")
 
-
-
-
     async def handle_translation(self, message):
         if message.content.startswith("!"):
             return
@@ -335,7 +333,6 @@ class Bot(commands.Bot):
 
         try:
             detected_lang = await self.translator.detect(message.content)
-
 
             if isinstance(detected_lang, list) and len(detected_lang) == 2:
                 detected_lang = detected_lang[0].lower()
