@@ -147,7 +147,8 @@ class Bot(commands.Bot):
         for key, message_template in MESSAGES.items():
 
             async def command(ctx, message_template=message_template):
-                message = message_template.format(usuario=ctx.author.display_name)
+                user = ctx.author.display_name
+                message = message_template.format(user=user)
                 await ctx.send(message)
 
             command.__name__ = key
