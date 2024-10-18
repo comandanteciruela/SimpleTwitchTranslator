@@ -212,7 +212,8 @@ class Bot(commands.Bot):
         self.commands_created = True
 
     async def event_ready(self):
-"""
+
+        """
         if self.commands_created:
             return
 
@@ -229,7 +230,7 @@ class Bot(commands.Bot):
         self.bot_connected_channel = self.get_channel(CHANNEL_NAME)
         print(f"\n<Bot name: {self.bot_display_name}>")
         print(f"{self.bot_connected_channel}\n")
-"""
+        """
         self.create_commands()
 
         if isinstance(BOT_INTRO_MESSAGES, list) and BOT_INTRO_MESSAGES:
@@ -297,7 +298,8 @@ class Bot(commands.Bot):
         except Exception as e:
             print(f"{ERROR_BOLD_RED}Connection broken. Error: {e}")
             return False, None
-"""
+            """
+    
     async def event_message(self, message):
         if not self.websocket_ready:
             return
