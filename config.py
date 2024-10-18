@@ -21,7 +21,7 @@ RANDOM_MESSAGES = [
     "Remember to follow the rules.",
     "Enjoy!",
 ]
-ORDERED_MESSAGES_INTERVAL = [
+ORDERED_MESSAGES = [
     "Woop woop",
     "Hey",
 ]
