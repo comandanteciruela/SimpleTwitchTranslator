@@ -67,6 +67,7 @@ except Exception as e:
     exit(1)
 
 DEFAULT_RANDOM_MESSAGES_INTERVAL = 2400
+DEFAULT_ORDERED_MESSAGES_INTERVAL = 2400
 
 try:
     if not isinstance(config.BOT_INTRO_MESSAGES, list):
@@ -117,6 +118,20 @@ try:
         RANDOM_MESSAGES_INTERVAL = config.RANDOM_MESSAGES_INTERVAL
 except AttributeError:
     RANDOM_MESSAGES_INTERVAL = DEFAULT_RANDOM_MESSAGES_INTERVAL
+
+try:
+    if (
+        not isinstance(config.ORDERED_MESSAGES_INTERVAL, int)
+        or config.ORDERED_MESSAGES_INTERVAL <= 0
+    ):
+        print(
+            f"{ERROR_BOLD_RED}Invalid ORDERED_MESSAGES_INTERVAL. ORDERED_MESSAGES_INTERVAL must be a positive integer. Defaulting to {DEFAULT_ORDERED_MESSAGES_INTERVAL} seconds."
+        )
+        ORDERED_MESSAGES_INTERVAL = DEFAULT_ORDERED_MESSAGES_INTERVAL
+    else:
+        ORDERED_MESSAGES_INTERVAL = config.ORDERED_MESSAGES_INTERVAL
+except AttributeError:
+    ORDERED_MESSAGES_INTERVAL = DEFAULT_ORDERED_MESSAGES_INTERVAL
 
 try:
     if not isinstance(config.IGNORE_TEXT, list):
@@ -192,9 +207,27 @@ class Bot(commands.Bot):
         if isinstance(BOT_INTRO_MESSAGES, list) and BOT_INTRO_MESSAGES:
             intro_message = choice(BOT_INTRO_MESSAGES)
             await self.bot_connected_channel.send(intro_message)
-            await sleep(1)
 
         create_task(self.send_random_messages())
+        create_task(self.send_ordered_messages())
+
+    async def send_ordered_messages(self):
+        interval = ORDERED_MESSAGES_INTERVAL
+        index = 0
+        while True:
+            await sleep(interval)
+            if (
+                self.websocket_ready
+                and ORDERED_MESSAGES
+                and isinstance(ORDERED_MESSAGES[index], str)
+            ):
+                message = ORDERED_MESSAGES[index]
+                await self.bot_connected_channel.send(message)
+                print(f"\n⭐ Sent ordered message: {message}")
+
+                index += 1
+                if index >= len(ORDERED_MESSAGES):
+                    index = 0
 
     async def send_random_messages(self):
         interval = RANDOM_MESSAGES_INTERVAL
@@ -207,7 +240,6 @@ class Bot(commands.Bot):
             ):
                 message = choice(RANDOM_MESSAGES)
                 await self.bot_connected_channel.send(message)
-                await sleep(1)
                 print(f"\n⭐ Sent random message: {message}")
 
     async def check_connection(self):
@@ -273,9 +305,7 @@ class Bot(commands.Bot):
         if message.content.startswith("!"):
             return
         try:
-            await sleep(0.35)
             detected_lang = await self.translator.detect(message.content)
-            await sleep(0.35)
 
             if isinstance(detected_lang, list) and len(detected_lang) == 2:
                 detected_lang = detected_lang[0].lower()
