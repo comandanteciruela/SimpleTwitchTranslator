@@ -1,3 +1,4 @@
+import certifi
 from asyncio import run, sleep, create_task
 from aiohttp import ClientSession
 from twitchio.ext import commands
