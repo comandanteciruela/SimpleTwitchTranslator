@@ -2,7 +2,6 @@ from asyncio import run, sleep, create_task
 from aiohttp import ClientSession
 from twitchio.ext import commands
 from twitchio.ext.commands import Command
-from twitchio.ext.commands.errors import CommandNotFound
 from async_google_trans_new import AsyncTranslator
 from random import choice
 from sys import exit
@@ -208,7 +207,7 @@ class Bot(commands.Bot):
                 message = choice(RANDOM_MESSAGES)
                 await self.bot_connected_channel.send(message)
                 await sleep(1)
-                print(f"\nSent random message: {message}")
+                print(f"\n⭐ Sent random message: {message}")
 
     async def check_connection(self):
         print(f"Trying to connect...")
