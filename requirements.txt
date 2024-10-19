@@ -1,2 +1,2 @@
-twitchio==2.9.1
+twitchio==2.9.0
 async_google_trans_new
