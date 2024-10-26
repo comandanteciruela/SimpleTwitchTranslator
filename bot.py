@@ -372,7 +372,6 @@ class Bot(commands.Bot):
                     formatted_message = f"{translated_text} [by {message.author.display_name}] ({detected_lang} > {target_lang})"
                     print(f"✅ Message sent: {formatted_message}")
                     await self.bot_connected_channel.send(f"/me {formatted_message}")
-                    print(f"/me {formatted_message}")
 
                 else:
                     print(f"{ERROR_BOLD_RED}Could not translate the message.")
