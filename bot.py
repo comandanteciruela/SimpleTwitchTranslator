@@ -178,6 +178,12 @@ class Bot(commands.Bot):
         self.current_raffle_name = None
         self.roulette_command_name = None
         self.RAFFLE_USERS = []
+        self.raffle_reminder_task = None
+
+    async def send_raffle_reminder(self):
+        while self.current_raffle_name is not None:
+            await sleep(30)
+            await self.bot_connected_channel.send(f"Please join the raffle 🎲 !{self.roulette_command_name} 🎲")
 
     def add_roulette_command(self):
         if self.roulette_command_name:
@@ -207,12 +213,12 @@ class Bot(commands.Bot):
 
         async def roulette_command(ctx, raffle_name: str = None):
             if ctx.author.display_name.lower() != CHANNEL_NAME.lower():
-                await ctx.send("Only the channel owner can use this command.")
+                await ctx.send("🤬 Only the channel owner can use this command.")
                 return
 
             if raffle_name is None:
                 if self.current_raffle_name is not None:
-                    await ctx.send(f"🎲 There is already an active raffle 🎲 !{self.current_raffle_name}. Use !roulette off to stop it and show the winner.")
+                    await ctx.send(f"There is already an active raffle 🎲 !{self.current_raffle_name} 🎲 Use !roulette end or !roulette off to end it and pick a winner.")
                 else:
                     await ctx.send("❌ Please provide a name for the raffle. Example: !roulette <rafflename>")
                 return
@@ -225,13 +231,15 @@ class Bot(commands.Bot):
                 self.current_raffle_name = raffle_name
                 self.roulette_command_name = raffle_name
                 self.RAFFLE_USERS.clear()
-                await ctx.send(f"🎲 Raffle started 🎲 !{self.current_raffle_name}")
+                await ctx.send(f"Raffle started 🎲 !{self.current_raffle_name} 🎲")
                 self.add_roulette_command()
+                if self.raffle_reminder_task is None:
+                    self.raffle_reminder_task = create_task(self.send_raffle_reminder())
             else:
 
-                if raffle_name.lower() == "off":
+                if raffle_name.lower() in ["off", "end"]:
                     if not self.RAFFLE_USERS:
-                        await ctx.send("There are no users registered for the raffle.")
+                        await ctx.send("😭 There are no users registered for the raffle. No winners. Raffle ended.")
                     else:
                         winner = choice(self.RAFFLE_USERS)
                         participant_count = len(self.RAFFLE_USERS)
@@ -241,8 +249,10 @@ class Bot(commands.Bot):
                     self.remove_roulette_command()
                     self.current_raffle_name = None
                     self.roulette_command_name = None
+                    self.raffle_reminder_task.cancel()
+                    self.raffle_reminder_task = None
                 else:
-                    await ctx.send(f"🎲 There is already an active raffle 🎲 !{self.current_raffle_name}. Use !roulette off to stop it and show the winner.")
+                    await ctx.send(f"There is already an active raffle 🎲 !{self.current_raffle_name} 🎲 Use !roulette end or !roulette off to end it and pick a winner.")
 
         roulette_command.__name__ = "roulette"
         roulette_command_instance = Command(name="roulette", func=roulette_command)
@@ -250,13 +260,13 @@ class Bot(commands.Bot):
 
         async def roulette_users_command(ctx):
             if ctx.author.display_name.lower() != CHANNEL_NAME.lower():
-                await ctx.send("Only the channel owner can use this command.")
+                await ctx.send("🤬 Only the channel owner can use this command.")
                 return
 
             if self.roulette_command_name is None:
-                await ctx.send("❌ There is no active raffle.")
+                await ctx.send("🫥 There is no active raffle.")
             elif not self.RAFFLE_USERS:
-                await ctx.send(f"There are no users registered for the raffle 🎲 !{self.current_raffle_name} 🎲.")
+                await ctx.send(f"😭 There are no users registered for the raffle 🎲 !{self.current_raffle_name} 🎲.")
             else:
                 users_list = ", ".join(self.RAFFLE_USERS)
                 await ctx.send(f"Registered users for the raffle 🎲 !{self.roulette_command_name} 🎲: {users_list}")
@@ -354,9 +364,6 @@ class Bot(commands.Bot):
 
     async def event_command_error(self, context: commands.Context, error: Exception):
         if isinstance(error, commands.CommandNotFound):
-            print(
-                f"{ERROR_BOLD_RED}Command not found. Use !help to see a list of available commands."
-            )
             await context.send(
                 "Command not found. Use !help to see a list of available commands."
             )
