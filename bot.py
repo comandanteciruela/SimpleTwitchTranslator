@@ -277,8 +277,13 @@ class Bot(commands.Bot):
             self.add_command(command_instance)
 
         async def help_command(ctx):
-            command_list = ", ".join(f"!{command}" for command in MESSAGES.keys())
-            await ctx.send(f"Available commands: {command_list}")
+            command_list = [f"!{command}" for command in MESSAGES.keys()]
+            command_list.append("!roulette")
+
+            if command_list:
+                await ctx.send(f"Available commands: {', '.join(command_list)}")
+            else:
+                await ctx.send(f"Available commands: {command_list}")
 
         help_command.__name__ = "help"
         help_command_instance = Command(name="help", func=help_command)
