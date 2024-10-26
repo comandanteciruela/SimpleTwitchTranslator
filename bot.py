@@ -12,10 +12,8 @@ OK_BOLD_GREEN = "\033[1;32mOK!\033[0m "
 LIGHT_GRAY = "\033[0;37m"
 RESET = "\033[0m"
 
-
-def is_valid(token):
+def is_valid_token(token):
     return isinstance(token, str) and len(token) > 18 and token.isalnum()
-
 
 def contains_repetitions(msg):
     words = msg.split()
@@ -34,139 +32,79 @@ def contains_repetitions(msg):
 
     return has_repetition, has_unique_word
 
+def load_config():
+    current_dir = abspath(".")
+    config_path = join(current_dir, "config.py")
 
-current_dir = abspath(".")
+    if not exists(config_path):
+        print(f"{ERROR_BOLD_RED}config.py is not in {current_dir}.")
+        exit(1)
 
-config_path = join(current_dir, "config.py")
+    try:
+        spec = spec_from_file_location("config", config_path)
+        config = module_from_spec(spec)
+        spec.loader.exec_module(config)
 
-if not exists(config_path):
-    print(f"{ERROR_BOLD_RED}config.py is not in {current_dir}.")
-    exit(1)
+        required_vars = {
+            "BOT_OAUTH_TOKEN": config.BOT_OAUTH_TOKEN,
+            "BOT_CLIENT_ID": config.BOT_CLIENT_ID,
+            "CHANNEL_NAME": config.CHANNEL_NAME,
+            "CHANNEL_NATIVE_LANG": config.CHANNEL_NATIVE_LANG,
+            "TRANSLATE_TO_LANG": config.TRANSLATE_TO_LANG
+        }
 
-try:
-    spec = spec_from_file_location("config", config_path)
-    config = module_from_spec(spec)
-    spec.loader.exec_module(config)
-    BOT_OAUTH_TOKEN = config.BOT_OAUTH_TOKEN
-    BOT_CLIENT_ID = config.BOT_CLIENT_ID
-    CHANNEL_NAME = config.CHANNEL_NAME
-    CHANNEL_NATIVE_LANG = config.CHANNEL_NATIVE_LANG
-    TRANSLATE_TO_LANG = config.TRANSLATE_TO_LANG
+        for var_name, var_value in required_vars.items():
+            if not isinstance(var_value, str) or not var_value:
+                print(f"{ERROR_BOLD_RED}{var_name} must be a valid non-empty string.")
+                exit(1)
 
-
-except Exception as e:
-    print(f"{ERROR_BOLD_RED}Couldn't load config.py correctly: {e}")
-    exit(1)
-
-    for var, name in zip(
-        [BOT_OAUTH_TOKEN, BOT_CLIENT_ID], ["BOT_OAUTH_TOKEN", "BOT_CLIENT_ID"]
-    ):
-        if not is_valid(var):
-            print(
-                f"{ERROR_BOLD_RED}{name} must be a string with more than 18 alphanumeric characters."
-            )
+        if not is_valid_token(config.BOT_OAUTH_TOKEN):
+            print(f"{ERROR_BOLD_RED}BOT_OAUTH_TOKEN must be a valid token.")
             exit(1)
 
-    if not (isinstance(CHANNEL_NATIVE_LANG, str) and len(CHANNEL_NATIVE_LANG) == 2):
-        print(
-            f"{ERROR_BOLD_RED}CHANNEL_NATIVE_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru"
-        )
+        if not (len(config.CHANNEL_NATIVE_LANG) == 2):
+            print(f"{ERROR_BOLD_RED}CHANNEL_NATIVE_LANG must be a 2-character string.")
+            exit(1)
+
+        if not (len(config.TRANSLATE_TO_LANG) == 2):
+            print(f"{ERROR_BOLD_RED}TRANSLATE_TO_LANG must be a 2-character string.")
+            exit(1)
+
+        return {
+            "BOT_OAUTH_TOKEN": config.BOT_OAUTH_TOKEN,
+            "BOT_CLIENT_ID": config.BOT_CLIENT_ID,
+            "CHANNEL_NAME": config.CHANNEL_NAME,
+            "CHANNEL_NATIVE_LANG": config.CHANNEL_NATIVE_LANG,
+            "TRANSLATE_TO_LANG": config.TRANSLATE_TO_LANG,
+            "BOT_INTRO_MESSAGES": getattr(config, "BOT_INTRO_MESSAGES", []),
+            "RANDOM_MESSAGES": getattr(config, "RANDOM_MESSAGES", []),
+            "ORDERED_MESSAGES": getattr(config, "ORDERED_MESSAGES", []),
+            "IGNORE_USERS": getattr(config, "IGNORE_USERS", []),
+            "MESSAGES": getattr(config, "MESSAGES", {}),
+            "RANDOM_MESSAGES_INTERVAL": getattr(config, "RANDOM_MESSAGES_INTERVAL", 2400),
+            "ORDERED_MESSAGES_INTERVAL": getattr(config, "ORDERED_MESSAGES_INTERVAL", 2400),
+            "IGNORE_TEXT": getattr(config, "IGNORE_TEXT", [])
+        }
+
+    except Exception as e:
+        print(f"{ERROR_BOLD_RED}Couldn't load config.py correctly: {e}")
         exit(1)
 
-    if not (isinstance(TRANSLATE_TO_LANG, str) and len(TRANSLATE_TO_LANG) == 2):
-        print(
-            f"{ERROR_BOLD_RED}TRANSLATE_TO_LANG must be a string with exactly 2 characters. Examples: es, en, ja, ru"
-        )
-        exit(1)
+config = load_config()
 
-except Exception as e:
-    print(f"{ERROR_BOLD_RED}Couldn't load config.py correctly: {e}")
-    exit(1)
-
-DEFAULT_RANDOM_MESSAGES_INTERVAL = 2400
-DEFAULT_ORDERED_MESSAGES_INTERVAL = 2400
-
-try:
-    if not isinstance(config.BOT_INTRO_MESSAGES, list):
-        print(f"{ERROR_BOLD_RED}BOT_INTRO_MESSAGES must be a list.")
-        BOT_INTRO_MESSAGES = []
-    else:
-        BOT_INTRO_MESSAGES = config.BOT_INTRO_MESSAGES
-except AttributeError:
-    BOT_INTRO_MESSAGES = []
-
-try:
-    if not isinstance(config.RANDOM_MESSAGES, list):
-        print(f"{ERROR_BOLD_RED}RANDOM_MESSAGES must be a list.")
-        RANDOM_MESSAGES = []
-    else:
-        RANDOM_MESSAGES = config.RANDOM_MESSAGES
-except AttributeError:
-    RANDOM_MESSAGES = []
-
-try:
-    if not isinstance(config.ORDERED_MESSAGES, list):
-        print(f"{ERROR_BOLD_RED}ORDERED_MESSAGES must be a list.")
-        ORDERED_MESSAGES = []
-    else:
-        ORDERED_MESSAGES = config.ORDERED_MESSAGES
-except AttributeError:
-    ORDERED_MESSAGES = []
-
-try:
-    if not isinstance(config.IGNORE_USERS, list):
-        print(f"{ERROR_BOLD_RED}IGNORE_USERS must be a list.")
-        IGNORE_USERS = []
-    else:
-        IGNORE_USERS = config.IGNORE_USERS
-except AttributeError:
-    IGNORE_USERS = []
-
-try:
-    if not isinstance(config.MESSAGES, dict):
-        print(f"{ERROR_BOLD_RED}MESSAGES must be a dictionary.")
-        MESSAGES = []
-    else:
-        MESSAGES = config.MESSAGES
-except AttributeError:
-    MESSAGES = {}
-
-try:
-    if (
-        not isinstance(config.RANDOM_MESSAGES_INTERVAL, int)
-        or config.RANDOM_MESSAGES_INTERVAL <= 0
-    ):
-        print(
-            f"{ERROR_BOLD_RED}Invalid RANDOM_MESSAGES_INTERVAL. RANDOM_MESSAGES_INTERVAL must be a positive integer. Defaulting to {DEFAULT_RANDOM_MESSAGES_INTERVAL} seconds."
-        )
-        RANDOM_MESSAGES_INTERVAL = DEFAULT_RANDOM_MESSAGES_INTERVAL
-    else:
-        RANDOM_MESSAGES_INTERVAL = config.RANDOM_MESSAGES_INTERVAL
-except AttributeError:
-    RANDOM_MESSAGES_INTERVAL = DEFAULT_RANDOM_MESSAGES_INTERVAL
-
-try:
-    if (
-        not isinstance(config.ORDERED_MESSAGES_INTERVAL, int)
-        or config.ORDERED_MESSAGES_INTERVAL <= 0
-    ):
-        print(
-            f"{ERROR_BOLD_RED}Invalid ORDERED_MESSAGES_INTERVAL. ORDERED_MESSAGES_INTERVAL must be a positive integer. Defaulting to {DEFAULT_ORDERED_MESSAGES_INTERVAL} seconds."
-        )
-        ORDERED_MESSAGES_INTERVAL = DEFAULT_ORDERED_MESSAGES_INTERVAL
-    else:
-        ORDERED_MESSAGES_INTERVAL = config.ORDERED_MESSAGES_INTERVAL
-except AttributeError:
-    ORDERED_MESSAGES_INTERVAL = DEFAULT_ORDERED_MESSAGES_INTERVAL
-
-try:
-    if not isinstance(config.IGNORE_TEXT, list):
-        print(f"{ERROR_BOLD_RED}IGNORE_TEXT must be a list.")
-        IGNORE_TEXT = []
-    IGNORE_TEXT = config.IGNORE_TEXT
-except AttributeError:
-    IGNORE_TEXT = []
-
+BOT_OAUTH_TOKEN = config["BOT_OAUTH_TOKEN"]
+BOT_CLIENT_ID = config["BOT_CLIENT_ID"]
+CHANNEL_NAME = config["CHANNEL_NAME"]
+CHANNEL_NATIVE_LANG = config["CHANNEL_NATIVE_LANG"]
+TRANSLATE_TO_LANG = config["TRANSLATE_TO_LANG"]
+BOT_INTRO_MESSAGES = config["BOT_INTRO_MESSAGES"]
+RANDOM_MESSAGES = config["RANDOM_MESSAGES"]
+ORDERED_MESSAGES = config["ORDERED_MESSAGES"]
+IGNORE_USERS = config["IGNORE_USERS"]
+MESSAGES = config["MESSAGES"]
+RANDOM_MESSAGES_INTERVAL = config["RANDOM_MESSAGES_INTERVAL"]
+ORDERED_MESSAGES_INTERVAL = config["ORDERED_MESSAGES_INTERVAL"]
+IGNORE_TEXT = config["IGNORE_TEXT"]
 
 class Bot(commands.Bot):
 
@@ -183,7 +121,9 @@ class Bot(commands.Bot):
     async def send_raffle_reminder(self):
         while self.current_raffle_name is not None:
             await sleep(30)
-            await self.bot_connected_channel.send(f"Please join the raffle 🎲 !{self.roulette_command_name} 🎲")
+            reminder_message = f"Please join the raffle 🎲 !{self.roulette_command_name} 🎲"
+            await self.bot_connected_channel.send(reminder_message)
+            print(reminder_message)
 
     def add_roulette_command(self):
         if self.roulette_command_name:
@@ -194,11 +134,15 @@ class Bot(commands.Bot):
         async def raffle_command(ctx):
             user = ctx.author.display_name
             if user in self.RAFFLE_USERS:
-                await ctx.send(f"❌ {user}, you are already registered for the raffle.")
+                message = f"❌ {user}, you are already registered for the raffle."
+                await ctx.send(message)
+                print(message)
             else:
                 self.RAFFLE_USERS.append(user)
                 participant_count = len(self.RAFFLE_USERS)
-                await ctx.send(f"✅ {user} has registered for the {self.roulette_command_name} raffle. Total participants: {participant_count}.")
+                message = f"✅ {user} has registered for the {self.roulette_command_name} raffle. Total participants: {participant_count}."
+                await ctx.send(message)
+                print(message)
 
         raffle_command.__name__ = self.roulette_command_name
         raffle_command_instance = Command(name=self.roulette_command_name, func=raffle_command)
@@ -210,40 +154,46 @@ class Bot(commands.Bot):
             self.current_raffle_name = None
 
     def create_commands(self):
-
         async def roulette_command(ctx, raffle_name: str = None):
             if ctx.author.display_name.lower() != CHANNEL_NAME.lower():
-                await ctx.send("🤬 Only the channel owner can use this command.")
+                message = "🤬 Only the channel owner can use this command."
+                await ctx.send(message)
+                print(message)
                 return
 
             if raffle_name is None:
                 if self.current_raffle_name is not None:
-                    await ctx.send(f"There is already an active raffle 🎲 !{self.current_raffle_name} 🎲 Use !roulette end or !roulette off to end it and pick a winner.")
+                    message = f"There is already an active raffle 🎲 !{self.current_raffle_name} 🎲 Use !roulette end or !roulette off to end it and pick a winner."
+                    await ctx.send(message)
+                    print(message)
                 else:
-                    await ctx.send("❌ Please provide a name for the raffle. Example: !roulette <rafflename>")
-                return
-
-                await ctx.send("❌ Please provide a name for the raffle. Example: !roulette <rafflename>")
+                    message = "❌ Please provide a name for the raffle. Example: !roulette <rafflename>"
+                    await ctx.send(message)
+                    print(message)
                 return
 
             if self.current_raffle_name is None:
-
                 self.current_raffle_name = raffle_name
                 self.roulette_command_name = raffle_name
                 self.RAFFLE_USERS.clear()
-                await ctx.send(f"Raffle started 🎲 !{self.current_raffle_name} 🎲")
+                message = f"\nRaffle started 🎲 !{self.current_raffle_name} 🎲"
+                await ctx.send(message)
+                print(message)
                 self.add_roulette_command()
                 if self.raffle_reminder_task is None:
                     self.raffle_reminder_task = create_task(self.send_raffle_reminder())
             else:
-
                 if raffle_name.lower() in ["off", "end"]:
                     if not self.RAFFLE_USERS:
-                        await ctx.send("😭 There are no users registered for the raffle. No winners. Raffle ended.")
+                        message = "😭 There are no users registered for the raffle. No winners. Raffle ended."
+                        await ctx.send(message)
+                        print(message)
                     else:
                         winner = choice(self.RAFFLE_USERS)
                         participant_count = len(self.RAFFLE_USERS)
-                        await ctx.send(f"🏆🎉✨ The winner of 🎲 !{self.roulette_command_name} 🎲 is {winner}! 🎊🎈🎆 Total participants: {participant_count}")
+                        message = f"🏆🎉✨ The winner of 🎲 !{self.roulette_command_name} 🎲 is {winner}! 🎊🎈🎆 Total participants: {participant_count}"
+                        await ctx.send(message)
+                        print(message)
 
                     self.RAFFLE_USERS.clear()
                     self.remove_roulette_command()
@@ -252,7 +202,9 @@ class Bot(commands.Bot):
                     self.raffle_reminder_task.cancel()
                     self.raffle_reminder_task = None
                 else:
-                    await ctx.send(f"There is already an active raffle 🎲 !{self.current_raffle_name} 🎲 Use !roulette end or !roulette off to end it and pick a winner.")
+                    message = f"There is already an active raffle 🎲 !{self.current_raffle_name} 🎲 Use !roulette end or !roulette off to end it and pick a winner."
+                    await ctx.send(message)
+                    print(message)
 
         roulette_command.__name__ = "roulette"
         roulette_command_instance = Command(name="roulette", func=roulette_command)
@@ -260,27 +212,35 @@ class Bot(commands.Bot):
 
         async def roulette_users_command(ctx):
             if ctx.author.display_name.lower() != CHANNEL_NAME.lower():
-                await ctx.send("🤬 Only the channel owner can use this command.")
+                message = "🤬 Only the channel owner can use this command."
+                await ctx.send(message)
+                print(message)
                 return
 
             if self.roulette_command_name is None:
-                await ctx.send("🫥 There is no active raffle.")
+                message = "🫥 There is no active raffle."
+                await ctx.send(message)
+                print(message)
             elif not self.RAFFLE_USERS:
-                await ctx.send(f"😭 There are no users registered for the raffle 🎲 !{self.current_raffle_name} 🎲.")
+                message = f"😭 There are no users registered for the raffle 🎲 !{self.current_raffle_name} 🎲."
+                await ctx.send(message)
+                print(message)
             else:
                 users_list = ", ".join(self.RAFFLE_USERS)
-                await ctx.send(f"Registered users for the raffle 🎲 !{self.roulette_command_name} 🎲: {users_list}")
+                message = f"Registered users for the raffle 🎲 !{self.roulette_command_name} 🎲: {users_list}"
+                await ctx.send(message)
+                print(message)
 
         roulette_users_command.__name__ = "rouletteusers"
         roulette_users_command_instance = Command(name="rouletteusers", func=roulette_users_command)
         self.add_command(roulette_users_command_instance)
 
         for key, message_template in MESSAGES.items():
-
             async def command(ctx, message_template=message_template):
                 user = ctx.author.display_name
                 message = message_template.format(user=user)
                 await ctx.send(message)
+                print(message)
 
             command.__name__ = key
             command_instance = Command(name=key, func=command)
@@ -291,9 +251,13 @@ class Bot(commands.Bot):
             command_list.append("!roulette")
 
             if command_list:
-                await ctx.send(f"Available commands: {', '.join(command_list)}")
+                message = f"Available commands: {', '.join(command_list)}"
+                await ctx.send(message)
+                print(message)
             else:
-                await ctx.send(f"Available commands: {command_list}")
+                message = f"Available commands: {command_list}"
+                await ctx.send(message)
+                print(message)
 
         help_command.__name__ = "help"
         help_command_instance = Command(name="help", func=help_command)
@@ -303,7 +267,6 @@ class Bot(commands.Bot):
         self.add_command(commands_command_instance)
 
     async def event_ready(self):
-
         self.bot_connected_channel = self.get_channel(CHANNEL_NAME)
 
         print(f"Connected. {OK_BOLD_GREEN}")
@@ -312,18 +275,18 @@ class Bot(commands.Bot):
 
         self.create_commands()
 
-        if BOT_INTRO_MESSAGES and isinstance(BOT_INTRO_MESSAGES, list):
+        if BOT_INTRO_MESSAGES:
             intro_message = choice(BOT_INTRO_MESSAGES)
             await self.bot_connected_channel.send(intro_message)
+            print(intro_message)
 
         create_task(self.send_random_messages())
         create_task(self.send_ordered_messages())
 
     async def send_ordered_messages(self):
-        interval = ORDERED_MESSAGES_INTERVAL
         index = 0
         while True:
-            await sleep(interval)
+            await sleep(ORDERED_MESSAGES_INTERVAL)
             if ORDERED_MESSAGES and isinstance(ORDERED_MESSAGES[index], str):
                 message = ORDERED_MESSAGES[index]
                 await self.bot_connected_channel.send(message)
@@ -334,16 +297,14 @@ class Bot(commands.Bot):
                     index = 0
 
     async def send_random_messages(self):
-        interval = RANDOM_MESSAGES_INTERVAL
         while True:
-            await sleep(interval)
+            await sleep(RANDOM_MESSAGES_INTERVAL)
             if RANDOM_MESSAGES and any(isinstance(msg, str) for msg in RANDOM_MESSAGES):
                 message = choice(RANDOM_MESSAGES)
                 await self.bot_connected_channel.send(message)
                 print(f"\n⭐ Sent random message: {message}")
 
     async def event_message(self, message):
-
         if message.author is None or message.author.id == self.nick:
             return
 
@@ -364,9 +325,9 @@ class Bot(commands.Bot):
 
     async def event_command_error(self, context: commands.Context, error: Exception):
         if isinstance(error, commands.CommandNotFound):
-            await context.send(
-                "Command not found. Use !help to see a list of available commands."
-            )
+            message = "Command not found. Use !help to see a list of available commands."
+            await context.send(message)
+            print(message)
         else:
             print(f"{ERROR_BOLD_RED}Something happened: {str(error)}")
 
@@ -411,6 +372,7 @@ class Bot(commands.Bot):
                     formatted_message = f"{translated_text} [by {message.author.display_name}] ({detected_lang} > {target_lang})"
                     print(f"✅ Message sent: {formatted_message}")
                     await self.bot_connected_channel.send(f"/me {formatted_message}")
+                    print(f"/me {formatted_message}")
 
                 else:
                     print(f"{ERROR_BOLD_RED}Could not translate the message.")
@@ -419,11 +381,9 @@ class Bot(commands.Bot):
         except Exception as e:
             print(f"{ERROR_BOLD_RED}Could not process the message: {e}")
 
-
 async def main():
     bot = Bot()
     await bot.start()
-
 
 if __name__ == "__main__":
     run(main())
