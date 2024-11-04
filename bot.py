@@ -80,7 +80,7 @@ def load_config():
             "RANDOM_MESSAGES": getattr(config, "RANDOM_MESSAGES", []),
             "ORDERED_MESSAGES": getattr(config, "ORDERED_MESSAGES", []),
             "IGNORE_USERS": getattr(config, "IGNORE_USERS", []),
-            "MESSAGES": getattr(config, "MESSAGES", {}),
+            "CUSTOM_COMMANDS": getattr(config, "CUSTOM_COMMANDS", {}),
             "RANDOM_MESSAGES_INTERVAL": getattr(config, "RANDOM_MESSAGES_INTERVAL", 2400),
             "ORDERED_MESSAGES_INTERVAL": getattr(config, "ORDERED_MESSAGES_INTERVAL", 2400),
             "IGNORE_TEXT": getattr(config, "IGNORE_TEXT", [])
@@ -101,7 +101,7 @@ BOT_INTRO_MESSAGES = config["BOT_INTRO_MESSAGES"]
 RANDOM_MESSAGES = config["RANDOM_MESSAGES"]
 ORDERED_MESSAGES = config["ORDERED_MESSAGES"]
 IGNORE_USERS = config["IGNORE_USERS"]
-MESSAGES = config["MESSAGES"]
+CUSTOM_COMMANDS = config["CUSTOM_COMMANDS"]
 RANDOM_MESSAGES_INTERVAL = config["RANDOM_MESSAGES_INTERVAL"]
 ORDERED_MESSAGES_INTERVAL = config["ORDERED_MESSAGES_INTERVAL"]
 IGNORE_TEXT = config["IGNORE_TEXT"]
@@ -235,7 +235,7 @@ class Bot(commands.Bot):
         roulette_users_command_instance = Command(name="rouletteusers", func=roulette_users_command)
         self.add_command(roulette_users_command_instance)
 
-        for key, message_template in MESSAGES.items():
+        for key, message_template in CUSTOM_COMMANDS.items():
             async def command(ctx, message_template=message_template):
                 user = ctx.author.display_name
                 message = message_template.format(user=user)
@@ -247,7 +247,7 @@ class Bot(commands.Bot):
             self.add_command(command_instance)
 
         async def help_command(ctx):
-            command_list = [f"!{command}" for command in MESSAGES.keys()]
+            command_list = [f"!{command}" for command in CUSTOM_COMMANDS.keys()]
             command_list.append("!roulette")
 
             if command_list:
