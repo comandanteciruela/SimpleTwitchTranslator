@@ -39,7 +39,7 @@ ORDERED_MESSAGES = [
 
 # DICT
 
-MESSAGES = {
+CUSTOM_COMMANDS = {
     "hellobot": "Hello {user}",
     "discord": "My discord invite url is...",
 }
