@@ -326,7 +326,7 @@ class Bot(commands.Bot):
     async def event_command_error(self, context: commands.Context, error: Exception):
         if isinstance(error, commands.CommandNotFound):
             message = "Command not found. Use !help to see a list of available commands."
-            await context.send(message)
+            #await context.send(message)
             print(message)
         else:
             print(f"{ERROR_BOLD_RED}Something happened: {str(error)}")
